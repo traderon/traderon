@@ -5,3 +5,4 @@ uuid
 Flask-SQLAlchemy
 python-dotenv
 werkzeug
+flask-mysqldb
