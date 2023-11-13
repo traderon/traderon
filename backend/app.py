@@ -173,7 +173,7 @@ def get_trade_data():
     return data_array
 
 
-# @app.route("/create")
-# def createdb():
-#     db.create_all()
-#     return "db created"
+@app.route("/create")
+def createdb():
+    db.create_all()
+    return "db created"
