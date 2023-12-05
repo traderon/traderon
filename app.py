@@ -1,18 +1,19 @@
 import os
 import jwt
 import uuid
-from flask import Flask, request, jsonify, make_response, abort
+import stripe
+from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
 load_dotenv()
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get("SECRET_KEY")
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 # print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
@@ -102,7 +103,7 @@ def register_user():
     )), firstname=data['firstname'], lastname=data['lastname'], password=hashed_password, email=data['email'], membership='trial')
     db.session.add(new_user)
     db.session.commit()
-    token = jwt.encode({'public_id': new_user.public_id, 'email': new_user.email, 'iat': datetime.utcnow(), 'exp': datetime.utcnow(
+    token = jwt.encode({'public_id': new_user.public_id, 'email': new_user.email, 'membership': 'trial', 'expired': 0, 'iat': datetime.utcnow(), 'exp': datetime.utcnow(
     ) + timedelta(minutes=30)}, app.config['SECRET_KEY'], "HS256")
     return jsonify({"success": True, "token": "Bearer " + token})
 
@@ -114,7 +115,15 @@ def login_user():
     if not user:
         return jsonify({"email": "User not found"}), 400
     if check_password_hash(user.password, data['password']):
-        token = jwt.encode({'public_id': user.public_id, 'email': user.email, 'iat': datetime.utcnow(), 'exp': datetime.utcnow(
+        if user.membership == 'trial':
+            expireday = 7
+        else:
+            expireday = 30
+        if user.paydate + timedelta(days=expireday) > datetime.utcnow():
+            expired = 0
+        else:
+            expired = 1
+        token = jwt.encode({'public_id': user.public_id, 'email': user.email, 'membership': user.membership, 'expired': expired, 'iat': datetime.utcnow(), 'exp': datetime.utcnow(
         ) + timedelta(minutes=30)}, app.config['SECRET_KEY'], "HS256")
         return jsonify({"success": True, "token": "Bearer " + token})
     else:
@@ -168,12 +177,120 @@ def get_trade_data():
         for sub in subdata_display:
             subs.append({"action": sub.action, "spread": sub.spread, "type": sub.type,
                         "date": sub.date, "size": sub.size, "position": sub.position, "price": sub.price, })
-        data_array.append({"id": data.trade_id, "status": data.status, "openDate": data.open_date, "symbol": data.symbol,
+        data_array.append({"id": data.trade_id, "broker": data.broker, "status": data.status, "openDate": data.open_date, "symbol": data.symbol,
                           "entry": data.entry, "exit": data.exit, "size": data.size, "return": data.ret, "side": data.side, "setups": data.setups, "mistakes": data.mistakes, "subs": subs})
     return data_array
 
 
-# @app.route("/create")
-# def createdb():
-#     db.create_all()
-#     return "db created"
+@app.route("/create-payment-intent", methods=["POST"])
+def create_payment():
+    try:
+        stripe_keys = {
+            "secret_key": os.environ.get("STRIPE_SECRET_KEY"),
+            "publishable_key": os.environ.get("STRIPE_PUBLISHABLE_KEY"),
+        }
+        stripe.api_key = stripe_keys["secret_key"]
+        data = request.json
+        intent = stripe.PaymentIntent.create(
+            amount=data["price"],
+            currency="usd",
+            # automatic_payment_methods={
+            #     'enabled': True,
+            # },
+            payment_method_types=["card"],
+        )
+        return jsonify({'clientSecret': intent['client_secret']})
+    except Exception as e:
+        return jsonify(error=str(e)), 403
+
+
+@app.route("/api/payment-success", methods=["POST"])
+def payment_success():
+    data = request.json
+    user = Users.query.filter_by(email=data["email"]).first()
+    user.membership = data["membership"]
+    user.paydate = datetime.utcnow()
+    db.session.commit()
+    token = jwt.encode({'public_id': user.public_id, 'email': user.email, 'membership': user.membership, 'expired': 0, 'iat': datetime.utcnow(), 'exp': datetime.utcnow(
+    ) + timedelta(minutes=30)}, app.config['SECRET_KEY'], "HS256")
+    return jsonify({"success": True, "token": "Bearer " + token})
+
+
+@app.route("/api/get-chart", methods=["POST"])
+def get_chartdata():
+    data = request.json
+    trades = Trades.query.filter_by(user_id=data["userId"]).all()
+    xvalue_all = []
+    trade_count = 0
+    accumulative_return = []
+    accumulative_return_total = 0
+    profit_factor = []
+    total_profit_factor = 0
+    avg_return = []
+    avg_return_total = 0
+    win_count = 0
+    pnl_total = 0
+    pnl_change = 0
+    volume_total = 0
+    pnl_day = 0
+    volume_day = 0
+    total_pnl = []
+    daily_pnl = []
+    daily_volume = []
+    total_win_rate = []
+    daily_win_rate = []
+    total_win_or_loss_score = []
+    win_or_loss_score = 0
+    for trade in trades:
+        trade_count += 1
+        xvalue_all.append(trade.open_date[0:10])
+        accumulative_return_total += float(trade.ret)
+        accumulative_return.append(accumulative_return_total)
+        profit_factor.append(abs(float(trade.ret)) / float(trade.entry))
+        total_profit_factor += abs(float(trade.ret)) / float(trade.entry)
+        avg_return.append(float(trade.ret))
+        avg_return_total += float(trade.ret)
+        if trade.status == "WIN":
+            win_count += 1
+            daily_win_rate.append(100)
+            win_or_loss_score += 3
+        else:
+            daily_win_rate.append(0)
+            win_or_loss_score -= 2
+        volume_total += float(trade.entry)
+        total_pnl.append(round(accumulative_return_total, 2))
+        daily_pnl.append(round(float(trade.ret), 2))
+        daily_volume.append(round(float(trade.entry)))
+        total_win_rate.append(round(100 * win_count / trade_count, 2))
+        total_win_or_loss_score.append(win_or_loss_score)
+    pnl_total = accumulative_return_total
+    pnl_change = pnl_total / volume_total * 100
+    pnl_day = pnl_total / len(trades)
+    volume_day = volume_total / len(trades)
+    return jsonify({"accumulative_return": accumulative_return, "accumulative_return_total": accumulative_return_total, "xvalue_all": xvalue_all, "profit_factor": profit_factor, "avg_profit_factor": total_profit_factor / len(profit_factor), "avg_return": avg_return, "avg_return_total": avg_return_total, "win_ratio": {"total": len(trades), "winning": win_count}, "pnl_total": pnl_total, "pnl_change": pnl_change, "pnl_day": pnl_day, "volume_day": volume_day, "total_pnl": total_pnl, "daily_pnl": daily_pnl, "daily_volume": daily_volume, "total_win_rate": total_win_rate, "daily_win_rate": daily_win_rate, "total_win_or_loss_score": total_win_or_loss_score})
+
+
+@app.route("/create")
+def createdb():
+    db.create_all()
+    return "db created"
+
+
+@app.route("/get-filter-item")
+def getfilteritem():
+    trades = Trades.query.all()
+    available_brokers = []
+    available_symbols = []
+    for trade in trades:
+        if not trade.broker in available_brokers:
+            available_brokers.append(trade.broker)
+        if not trade.symbol in available_symbols:
+            available_symbols.append(trade.symbol)
+    return jsonify({"brokers": available_brokers, "symbols": available_symbols, "status": ["WIN", "LOSS"]})
+
+
+if __name__ == '__main__':
+    if os.environ.get("DEBUG_MODE") == "TRUE":
+        app.run(debug=True)
+    else:
+        app.run()
