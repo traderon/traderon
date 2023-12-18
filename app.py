@@ -9,6 +9,8 @@ from datetime import datetime, timedelta
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from brokers.oanda import oanda_import
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -135,6 +137,18 @@ def login_user():
 def get_current_user(current_user):
     user = Users.query.filter_by(email=current_user.email).first()
     return jsonify({"id": user.public_id, "email": user.email, "firstname": user.firstname, "lastname": user.lastname, "membership": user.membership, "paydate": user.paydate})
+
+
+@app.route("/api/import_trades", methods=["POST"])
+def import_trades():
+    tokens = request.json
+    broker = tokens["broker"]
+    if broker == "Oanda":
+        imported_trades = oanda_import(tokens["key"], tokens["id"])
+    if isinstance(imported_trades, list):
+        return jsonify(imported_trades)
+    else:
+        return imported_trades, 500
 
 
 @app.route("/api/trades", methods=["POST"])
