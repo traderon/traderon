@@ -146,35 +146,29 @@ def import_trades():
     if broker == "Oanda":
         imported_trades = oanda_import(tokens["key"], tokens["id"])
     if isinstance(imported_trades, list):
-        return jsonify(imported_trades)
+        userid = tokens["user"]
+        for trade_data in imported_trades:
+            check_trade = Trades.query.filter_by(user_id=userid,
+                                                 account_id=trade_data["account_id"], broker=trade_data["broker"], trade_id=trade_data["trade_id"]).first()
+            if check_trade:
+                continue
+            new_trade = Trades(user_id=userid, account_id=trade_data["account_id"], broker=trade_data["broker"], trade_id=trade_data["trade_id"], status=trade_data["status"], open_date=trade_data["open_date"],
+                               symbol=trade_data["symbol"], entry=trade_data["entry"], exit=trade_data["exit"], size=trade_data["size"], ret=trade_data["ret"], side=trade_data["side"], setups=trade_data["setups"], mistakes=trade_data["mistakes"])
+            db.session.add(new_trade)
+            db.session.commit()
+            subtrade_1 = trade_data["sub_1"]
+            new_sub_1 = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=subtrade_1["action"], spread=subtrade_1["spread"],
+                                  type=subtrade_1["type"], date=subtrade_1["date"], size=subtrade_1["size"], position=subtrade_1["position"], price=subtrade_1["price"])
+            db.session.add(new_sub_1)
+            db.session.commit()
+            subtrade_2 = trade_data["sub_2"]
+            new_sub_2 = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=subtrade_2["action"], spread=subtrade_2["spread"],
+                                  type=subtrade_2["type"], date=subtrade_2["date"], size=subtrade_2["size"], position=subtrade_2["position"], price=subtrade_2["price"])
+            db.session.add(new_sub_2)
+            db.session.commit()
+        return jsonify({"success": True})
     else:
         return imported_trades, 500
-
-
-@app.route("/api/trades", methods=["POST"])
-def manage_trades():
-    tradesdata = request.json
-    userid = tradesdata["user"]
-    for trade_data in tradesdata["trades"]:
-        check_trade = Trades.query.filter_by(user_id=userid,
-                                             account_id=trade_data["account_id"], broker=trade_data["broker"], trade_id=trade_data["trade_id"]).first()
-        if check_trade:
-            continue
-        new_trade = Trades(user_id=userid, account_id=trade_data["account_id"], broker=trade_data["broker"], trade_id=trade_data["trade_id"], status=trade_data["status"], open_date=trade_data["open_date"],
-                           symbol=trade_data["symbol"], entry=trade_data["entry"], exit=trade_data["exit"], size=trade_data["size"], ret=trade_data["ret"], side=trade_data["side"], setups=trade_data["setups"], mistakes=trade_data["mistakes"])
-        db.session.add(new_trade)
-        db.session.commit()
-        subtrade_1 = trade_data["sub_1"]
-        new_sub_1 = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=subtrade_1["action"], spread=subtrade_1["spread"],
-                              type=subtrade_1["type"], date=subtrade_1["date"], size=subtrade_1["size"], position=subtrade_1["position"], price=subtrade_1["price"])
-        db.session.add(new_sub_1)
-        db.session.commit()
-        subtrade_2 = trade_data["sub_2"]
-        new_sub_2 = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=subtrade_2["action"], spread=subtrade_2["spread"],
-                              type=subtrade_2["type"], date=subtrade_2["date"], size=subtrade_2["size"], position=subtrade_2["position"], price=subtrade_2["price"])
-        db.session.add(new_sub_2)
-        db.session.commit()
-    return jsonify({"success": True})
 
 
 @app.route("/api/get_trades", methods=["POST"])
