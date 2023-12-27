@@ -187,7 +187,6 @@ def get_trade_data():
                         "date": sub.date, "size": sub.size, "position": sub.position, "price": sub.price, })
         data_array.append({"id": data.trade_id, "broker": data.broker, "status": data.status, "openDate": data.open_date, "symbol": data.symbol,
                           "entry": data.entry, "exit": data.exit, "size": data.size, "return": data.ret, "side": data.side, "setups": data.setups, "mistakes": data.mistakes, "subs": subs})
-    #hola
     return jsonify(data_array)
 
 
