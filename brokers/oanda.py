@@ -16,38 +16,34 @@ def oanda_import(api_key, account_ID):
         trades = (res.json())["trades"]
         return_value = []
         for trade in trades:
-            if float(trade["realizedPL"]) > 0:
-                status = "WIN"
+            if float(trade["realizedPL"]) == 0:
+                continue
             else:
-                status = "LOSS"
-            if "takeProfitOrder" not in trade:
-                side = "UNKNOWN"
-            else:
-                takeProfitOrder = trade["takeProfitOrder"]
-                if float(trade["price"]) > float(takeProfitOrder["price"]):
+                if float(trade["realizedPL"]) > 0:
+                    status = "WIN"
+                else:
+                    status = "LOSS"
+            instrument = '$' + trade['instrument'].replace('_', '')
+            if not 'averageClosePrice' in trade:
+                continue
+            if float(trade['realizedPL']) > 0:
+                if float(trade['price']) > float(trade['averageClosePrice']):
                     side = "SHORT"
                 else:
                     side = "LONG"
-            if "takeProfitOrder" not in trade:
-                action = "UNKNOWN"
             else:
-                takeProfitOrder = trade["takeProfitOrder"]
-                if float(trade["price"]) > float(takeProfitOrder["price"]):
-                    action = "Sell"
+                if float(trade['price']) < float(trade['averageClosePrice']):
+                    side = "SHORT"
                 else:
-                    action = "Buy"
-            if "stopLossOrder" in trade:
-                stopLossOrder = trade["stopLossOrder"]
-                price = stopLossOrder["price"]
-                if "filledTime" in stopLossOrder:
-                    date = stopLossOrder["filledTime"]
-                else:
-                    date = stopLossOrder["cancelledTime"]
+                    side = "LONG"
+            if side == 'LONG':
+                action = 'Buy'
+                action_2 = 'Sell'
             else:
-                date = "UNKNOWN"
-                price = "NO STOPLOSS"
+                action = 'Sell'
+                action_2 = 'Buy'
             return_value.append(
-                {"account_id": account_ID, "broker": "Oanda", "trade_id": trade["id"], "status": status, "open_date": trade["openTime"], "symbol": trade["instrument"], "entry": trade["price"], "exit": trade["averageClosePrice"], "size": trade["initialUnits"], "ret": trade["realizedPL"], "side": side, "setups": "", "mistakes": "", "sub_1": {"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["price"]}, "sub_2": {"action": action, "spread": "SINGLE", "type": "FOREX", "date": date, "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": price}})
+                {"account_id": account_ID, "broker": "Oanda", "trade_id": trade["id"], "status": status, "open_date": trade["openTime"], "symbol": instrument, "entry": trade["price"], "exit": trade["averageClosePrice"], "size": trade["initialUnits"], "ret": trade["realizedPL"], "side": side, "setups": "", "mistakes": "", "sub_1": {"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["price"]}, "sub_2": {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["averageClosePrice"]}})
         return return_value
     except Exception as e:
         return e
