@@ -166,6 +166,17 @@ def import_trades():
                                   type=subtrade_2["type"], date=subtrade_2["date"], size=subtrade_2["size"], position=subtrade_2["position"], price=subtrade_2["price"])
             db.session.add(new_sub_2)
             db.session.commit()
+            if 'sub_3' in trade_data:
+                subtrade_3 = trade_data["sub_3"]
+                new_sub_3 = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=subtrade_3["action"], spread=subtrade_3["spread"],
+                                      type=subtrade_3["type"], date=subtrade_3["date"], size=subtrade_3["size"], position=subtrade_3["position"], price=subtrade_3["price"])
+                db.session.add(new_sub_3)
+                db.session.commit()
+                subtrade_4 = trade_data["sub_4"]
+                new_sub_4 = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=subtrade_4["action"], spread=subtrade_4["spread"],
+                                      type=subtrade_4["type"], date=subtrade_4["date"], size=subtrade_4["size"], position=subtrade_4["position"], price=subtrade_4["price"])
+                db.session.add(new_sub_4)
+                db.session.commit()
         return jsonify({"success": True})
     else:
         return imported_trades, 500
