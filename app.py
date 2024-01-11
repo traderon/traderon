@@ -267,8 +267,8 @@ def get_chartdata():
         accumulative_return.append(accumulative_return_total)
         profit_factor.append(abs(float(trade.ret)) / float(trade.entry))
         total_profit_factor += abs(float(trade.ret)) / float(trade.entry)
-        avg_return.append(float(trade.ret))
         avg_return_total += float(trade.ret)
+        avg_return.append(avg_return_total / trade_count)
         if trade.status == "WIN":
             win_count += 1
             daily_win_rate.append(100)
@@ -286,7 +286,7 @@ def get_chartdata():
     pnl_change = pnl_total / volume_total * 100
     pnl_day = pnl_total / len(trades)
     volume_day = volume_total / len(trades)
-    return jsonify({"accumulative_return": accumulative_return, "accumulative_return_total": accumulative_return_total, "xvalue_all": xvalue_all, "profit_factor": profit_factor, "avg_profit_factor": total_profit_factor / len(profit_factor), "avg_return": avg_return, "avg_return_total": avg_return_total, "win_ratio": {"total": len(trades), "winning": win_count}, "pnl_total": pnl_total, "pnl_change": pnl_change, "pnl_day": pnl_day, "volume_day": volume_day, "total_pnl": total_pnl, "daily_pnl": daily_pnl, "daily_volume": daily_volume, "total_win_rate": total_win_rate, "daily_win_rate": daily_win_rate, "total_win_or_loss_score": total_win_or_loss_score})
+    return jsonify({"accumulative_return": accumulative_return, "accumulative_return_total": accumulative_return_total, "xvalue_all": xvalue_all, "profit_factor": profit_factor, "avg_profit_factor": total_profit_factor / len(profit_factor), "avg_return": avg_return, "avg_return_total": avg_return_total / len(trades), "win_ratio": {"total": len(trades), "winning": win_count}, "pnl_total": pnl_total, "pnl_change": pnl_change, "pnl_day": pnl_day, "volume_day": volume_day, "total_pnl": total_pnl, "daily_pnl": daily_pnl, "daily_volume": daily_volume, "total_win_rate": total_win_rate, "daily_win_rate": daily_win_rate, "total_win_or_loss_score": total_win_or_loss_score})
 
 
 @app.route("/create")
