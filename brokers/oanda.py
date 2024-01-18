@@ -46,11 +46,17 @@ def oanda_import(api_key, account_ID):
                     if len(appended["subs"]) == 2:
                         sub_1 = appended["subs"][0]
                         sub_2 = appended["subs"][1]
-                        if appended['symbol'] == instrument and abs((datetime.datetime.fromisoformat(sub_2['date']) - datetime.datetime.fromisoformat(trade["closeTime"])).total_seconds()) < 3600:
+                        if appended['symbol'] == instrument and abs((datetime.datetime.fromisoformat(sub_2['date']) - datetime.datetime.fromisoformat(trade["closeTime"])).total_seconds()) < 600:
                             appended['ret'] = str(
                                 float(appended['ret']) + float(trade['realizedPL']))
                             appended['size'] = str(
                                 float(appended['size']) + float(trade["initialUnits"]))
+                            appended['open_date'] = trade["openTime"]
+                            appended['entry'] = trade["price"]
+                            if float(appended['ret']) > 0:
+                                appended['status'] = "WIN"
+                            else:
+                                appended['status'] = "LOSS"
                             new_subs = [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": str(float(sub_1['position']) + float(trade["initialUnits"])), "price": trade["price"]}, {
                                 "action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["averageClosePrice"]}]
                             appended['subs'].extend(new_subs)
