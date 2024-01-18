@@ -1,28 +1,21 @@
-import requests
 import datetime
-
-base_url = "https://api-fxtrade.oanda.com/v3/accounts/"
-params = "//trades?state=ALL&count=500&beforeID="
+from oandapyV20 import API
+import oandapyV20.endpoints.trades as trades
+import oandapyV20.endpoints.accounts as accounts
 
 
 def oanda_import(api_key, account_ID):
+    return_value = []
+    params = {"beforeID": 500000, "state": "ALL", "count": 500}
     try:
-        token = 'Bearer ' + api_key
-        headers = {
-            "Authorization": token,
-            "Content-Type": "application/json"
-        }
-        beforeID = 500000
-        return_value = []
-        while True:
-            # print(beforeID)
-            url = base_url + account_ID + params + str(beforeID)
-            res = requests.get(url=url, headers=headers)
-            trades = (res.json())["trades"]
-            if len(trades) == 0:
-                break
-            for trade in trades:
-                found_pair = False
+        r = accounts.AccountList()
+        Client = API(environment='live', access_token=api_key)
+        Client.request(r)
+        for i in r.response['accounts']:
+            resp = trades.TradesList(i['id'], params=params)
+            tradesList = Client.request(resp)
+            for trade in tradesList["trades"]:
+                # found_pair = False
                 if float(trade["realizedPL"]) == 0:
                     continue
                 else:
@@ -49,28 +42,23 @@ def oanda_import(api_key, account_ID):
                 else:
                     action = 'Sell'
                     action_2 = 'Buy'
-                for appended in return_value:
-                    subtrade = appended["sub_2"]
-                    subtrade_0 = appended["sub_1"]
-                    if appended['symbol'] == instrument and abs((datetime.datetime.fromisoformat(
-                            subtrade['date']) - datetime.datetime.fromisoformat(trade["closeTime"])).total_seconds()) < 3600:
-                        found_pair = True
-                        appended['ret'] = str(
-                            float(appended['ret']) + float(trade['realizedPL']))
-                        appended['size'] = str(
-                            float(appended['size']) + float(trade["initialUnits"]))
-                        appended['sub_3'] = {"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(
-                            abs(float(trade["initialUnits"]))), "position": str(float(subtrade_0['position']) + float(trade["initialUnits"])), "price": trade["price"]}
-                        appended['sub_4'] = {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(
-                            abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["averageClosePrice"]}
-                        break
-                    else:
-                        continue
-                if found_pair == False:
-                    return_value.append(
-                        {"account_id": account_ID, "broker": "Oanda", "trade_id": trade["id"], "status": status, "open_date": trade["openTime"], "symbol": instrument, "entry": trade["price"], "exit": trade["averageClosePrice"], "size": trade["initialUnits"], "ret": trade["realizedPL"], "side": side, "setups": "", "mistakes": "", "sub_1": {"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["price"]}, "sub_2": {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": "0", "price": trade["averageClosePrice"]}})
-            last_trade = trades[len(trades) - 1]
-            beforeID = last_trade["id"]
+                if len(return_value) > 0:
+                    if len(return_value[-1]["subs"]) == 2:
+                        sub_1 = return_value[-1]["subs"][0]
+                        sub_2 = return_value[-1]["subs"][1]
+                        if return_value[-1]['symbol'] == instrument and abs((datetime.datetime.fromisoformat(sub_2['date']) - datetime.datetime.fromisoformat(trade["closeTime"])).total_seconds()) < 3600:
+                            return_value[-1]['ret'] = str(
+                                float(return_value[-1]['ret']) + float(trade['realizedPL']))
+                            return_value[-1]['size'] = str(
+                                float(return_value[-1]['size']) + float(trade["initialUnits"]))
+                            new_subs = [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": str(float(sub_1['position']) + float(trade["initialUnits"])), "price": trade["price"]}, {
+                                "action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["averageClosePrice"]}]
+                            return_value[-1]['subs'].extend(new_subs)
+                            continue
+                return_value.append(
+                    {"account_id": account_ID, "broker": "Oanda", "trade_id": trade["id"], "status": status, "open_date": trade["openTime"], "symbol": instrument, "entry": trade["price"], "exit": trade["averageClosePrice"], "size": trade["initialUnits"], "ret": trade["realizedPL"], "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": "0", "price": trade["averageClosePrice"]}]})
+                # last_trade = trades[len(trades) - 1]
+                # beforeID = last_trade["id"]
         return return_value
     except Exception as e:
         return e

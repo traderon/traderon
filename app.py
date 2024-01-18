@@ -155,28 +155,11 @@ def import_trades():
             new_trade = Trades(user_id=userid, account_id=trade_data["account_id"], broker=trade_data["broker"], trade_id=trade_data["trade_id"], status=trade_data["status"], open_date=trade_data["open_date"],
                                symbol=trade_data["symbol"], entry=trade_data["entry"], exit=trade_data["exit"], size=trade_data["size"], ret=trade_data["ret"], side=trade_data["side"], setups=trade_data["setups"], mistakes=trade_data["mistakes"])
             db.session.add(new_trade)
+            for sub in trade_data["subs"]:
+                new_sub = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=sub["action"], spread=sub["spread"],
+                                    type=sub["type"], date=sub["date"], size=sub["size"], position=sub["position"], price=sub["price"])
+                db.session.add(new_sub)
             db.session.commit()
-            subtrade_1 = trade_data["sub_1"]
-            new_sub_1 = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=subtrade_1["action"], spread=subtrade_1["spread"],
-                                  type=subtrade_1["type"], date=subtrade_1["date"], size=subtrade_1["size"], position=subtrade_1["position"], price=subtrade_1["price"])
-            db.session.add(new_sub_1)
-            db.session.commit()
-            subtrade_2 = trade_data["sub_2"]
-            new_sub_2 = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=subtrade_2["action"], spread=subtrade_2["spread"],
-                                  type=subtrade_2["type"], date=subtrade_2["date"], size=subtrade_2["size"], position=subtrade_2["position"], price=subtrade_2["price"])
-            db.session.add(new_sub_2)
-            db.session.commit()
-            if 'sub_3' in trade_data:
-                subtrade_3 = trade_data["sub_3"]
-                new_sub_3 = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=subtrade_3["action"], spread=subtrade_3["spread"],
-                                      type=subtrade_3["type"], date=subtrade_3["date"], size=subtrade_3["size"], position=subtrade_3["position"], price=subtrade_3["price"])
-                db.session.add(new_sub_3)
-                db.session.commit()
-                subtrade_4 = trade_data["sub_4"]
-                new_sub_4 = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=subtrade_4["action"], spread=subtrade_4["spread"],
-                                      type=subtrade_4["type"], date=subtrade_4["date"], size=subtrade_4["size"], position=subtrade_4["position"], price=subtrade_4["price"])
-                db.session.add(new_sub_4)
-                db.session.commit()
         return jsonify({"success": True})
     else:
         return imported_trades, 500
