@@ -15,7 +15,7 @@ def oanda_import(api_key, account_ID):
             resp = trades.TradesList(i['id'], params=params)
             tradesList = Client.request(resp)
             for trade in tradesList["trades"]:
-                # found_pair = False
+                found = False
                 if float(trade["realizedPL"]) == 0:
                     continue
                 else:
@@ -42,23 +42,24 @@ def oanda_import(api_key, account_ID):
                 else:
                     action = 'Sell'
                     action_2 = 'Buy'
-                if len(return_value) > 0:
-                    if len(return_value[-1]["subs"]) == 2:
-                        sub_1 = return_value[-1]["subs"][0]
-                        sub_2 = return_value[-1]["subs"][1]
-                        if return_value[-1]['symbol'] == instrument and abs((datetime.datetime.fromisoformat(sub_2['date']) - datetime.datetime.fromisoformat(trade["closeTime"])).total_seconds()) < 3600:
-                            return_value[-1]['ret'] = str(
-                                float(return_value[-1]['ret']) + float(trade['realizedPL']))
-                            return_value[-1]['size'] = str(
-                                float(return_value[-1]['size']) + float(trade["initialUnits"]))
+                for appended in return_value:
+                    if len(appended["subs"]) == 2:
+                        sub_1 = appended["subs"][0]
+                        sub_2 = appended["subs"][1]
+                        if appended['symbol'] == instrument and abs((datetime.datetime.fromisoformat(sub_2['date']) - datetime.datetime.fromisoformat(trade["closeTime"])).total_seconds()) < 3600:
+                            appended['ret'] = str(
+                                float(appended['ret']) + float(trade['realizedPL']))
+                            appended['size'] = str(
+                                float(appended['size']) + float(trade["initialUnits"]))
                             new_subs = [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": str(float(sub_1['position']) + float(trade["initialUnits"])), "price": trade["price"]}, {
                                 "action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["averageClosePrice"]}]
-                            return_value[-1]['subs'].extend(new_subs)
-                            continue
+                            appended['subs'].extend(new_subs)
+                            found = True
+                            break
+                if found == True:
+                    continue
                 return_value.append(
                     {"account_id": account_ID, "broker": "Oanda", "trade_id": trade["id"], "status": status, "open_date": trade["openTime"], "symbol": instrument, "entry": trade["price"], "exit": trade["averageClosePrice"], "size": trade["initialUnits"], "ret": trade["realizedPL"], "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": "0", "price": trade["averageClosePrice"]}]})
-                # last_trade = trades[len(trades) - 1]
-                # beforeID = last_trade["id"]
         return return_value
     except Exception as e:
         return e
