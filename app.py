@@ -88,6 +88,10 @@ def token_required(f):
     return decorated
 
 
+def sort_by_date(dic):
+    return dic.open_date
+
+
 @app.route("/")
 def testRoute():
     return "HELLO, this is a test. server working!!!"
@@ -162,7 +166,7 @@ def import_trades():
             db.session.commit()
         return jsonify({"success": True})
     else:
-        return imported_trades, 500
+        return str(imported_trades), 500
 
 
 @app.route("/api/get_trades", methods=["POST"])
@@ -222,6 +226,7 @@ def payment_success():
 def get_chartdata():
     data = request.json
     trades = Trades.query.filter_by(user_id=data["userId"]).all()
+    trades.sort(key=sort_by_date)
     xvalue_all = []
     trade_count = 0
     accumulative_return = []
