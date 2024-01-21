@@ -1,5 +1,6 @@
 import datetime
 from oandapyV20 import API
+from oandapyV20.exceptions import V20Error
 import oandapyV20.endpoints.trades as trades
 import oandapyV20.endpoints.accounts as accounts
 
@@ -67,5 +68,6 @@ def oanda_import(api_key, account_ID):
                 return_value.append(
                     {"account_id": account_ID, "broker": "Oanda", "trade_id": trade["id"], "status": status, "open_date": trade["openTime"], "symbol": instrument, "entry": trade["price"], "exit": trade["averageClosePrice"], "size": trade["initialUnits"], "ret": trade["realizedPL"], "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": "0", "price": trade["averageClosePrice"]}]})
         return return_value
-    except Exception as e:
-        return e
+    except V20Error as e:
+        print(e)
+        return False
