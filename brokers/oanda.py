@@ -46,7 +46,7 @@ def oanda_import(api_key, account_ID):
                     if len(appended["subs"]) == 2:
                         sub_1 = appended["subs"][0]
                         sub_2 = appended["subs"][1]
-                        if appended['symbol'] == instrument and abs((datetime.datetime.fromisoformat(sub_2['date']) - datetime.datetime.fromisoformat(trade["closeTime"])).total_seconds()) < 600:
+                        if appended['symbol'] == instrument and abs((datetime.datetime.fromisoformat(sub_2['date'][0:19]) - datetime.datetime.fromisoformat(trade["closeTime"][0:19])).total_seconds()) < 600:
                             appended['ret'] = str(
                                 float(appended['ret']) + float(trade['realizedPL']))
                             appended['size'] = str(
@@ -68,4 +68,5 @@ def oanda_import(api_key, account_ID):
                     {"account_id": account_ID, "broker": "Oanda", "trade_id": trade["id"], "status": status, "open_date": trade["openTime"], "symbol": instrument, "entry": trade["price"], "exit": trade["averageClosePrice"], "size": trade["initialUnits"], "ret": trade["realizedPL"], "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": "0", "price": trade["averageClosePrice"]}]})
         return {'trades': return_value}
     except Exception as e:
-        return {'errors': str(e)}
+        print(e)
+        return {'errors': "Error Occured"}
