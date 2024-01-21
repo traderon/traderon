@@ -149,9 +149,9 @@ def import_trades():
     broker = tokens["broker"]
     if broker == "Oanda":
         imported_trades = oanda_import(tokens["key"], tokens["id"])
-    if isinstance(imported_trades, list):
+    if 'trades' in imported_trades:
         userid = tokens["user"]
-        for trade_data in imported_trades:
+        for trade_data in imported_trades['trades']:
             check_trade = Trades.query.filter_by(user_id=userid,
                                                  account_id=trade_data["account_id"], broker=trade_data["broker"], trade_id=trade_data["trade_id"]).first()
             if check_trade:
