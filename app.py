@@ -166,7 +166,7 @@ def import_trades():
             db.session.commit()
         return jsonify({"success": True})
     else:
-        return str(imported_trades), 500
+        return jsonify({"error": "Error occured"}), 500
 
 
 @app.route("/api/get_trades", methods=["POST"])
