@@ -4,6 +4,10 @@ import oandapyV20.endpoints.trades as trades
 import oandapyV20.endpoints.accounts as accounts
 
 
+def sort_by_date(dic):
+    return dic["date"]
+
+
 def oanda_import(api_key, account_ID):
     return_value = []
     params = {"beforeID": 500000, "state": "ALL", "count": 500}
@@ -43,25 +47,32 @@ def oanda_import(api_key, account_ID):
                     action = 'Sell'
                     action_2 = 'Buy'
                 for appended in return_value:
-                    if len(appended["subs"]) == 2:
-                        sub_1 = appended["subs"][0]
-                        sub_2 = appended["subs"][1]
-                        if appended['symbol'] == instrument and abs((datetime.datetime.fromisoformat(sub_2['date'][0:19]) - datetime.datetime.fromisoformat(trade["closeTime"][0:19])).total_seconds()) < 600:
-                            appended['ret'] = str(
-                                float(appended['ret']) + float(trade['realizedPL']))
-                            appended['size'] = str(
-                                float(appended['size']) + float(trade["initialUnits"]))
-                            appended['open_date'] = trade["openTime"]
-                            appended['entry'] = trade["price"]
-                            if float(appended['ret']) > 0:
-                                appended['status'] = "WIN"
+                    # if len(appended["subs"]) == 2:
+                    sub_1 = appended["subs"][0]
+                    if appended['symbol'] == instrument and datetime.datetime.fromisoformat(trade['openTime'][0:26]) < datetime.datetime.fromisoformat(sub_1['date'][0:26]) and datetime.datetime.fromisoformat(trade['closeTime'][0:26]) > datetime.datetime.fromisoformat(sub_1['date'][0:26]):
+                        appended['ret'] = str(
+                            float(appended['ret']) + float(trade['realizedPL']))
+                        appended['size'] = str(
+                            float(appended['size']) + float(trade["initialUnits"]))
+                        appended['open_date'] = trade["openTime"]
+                        appended['entry'] = trade["price"]
+                        if float(appended['ret']) > 0:
+                            appended['status'] = "WIN"
+                        else:
+                            appended['status'] = "LOSS"
+                        new_subs = [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": str(float(sub_1['position']) + float(trade["initialUnits"])), "price": trade["price"]}, {
+                            "action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["averageClosePrice"]}]
+                        appended['subs'].extend(new_subs)
+                        appended['subs'].sort(key=sort_by_date)
+                        temp = 0
+                        for fixing in appended['subs']:
+                            if fixing['action'] == 'Buy':
+                                temp += float(fixing['size'])
                             else:
-                                appended['status'] = "LOSS"
-                            new_subs = [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": str(float(sub_1['position']) + float(trade["initialUnits"])), "price": trade["price"]}, {
-                                "action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["averageClosePrice"]}]
-                            appended['subs'].extend(new_subs)
-                            found = True
-                            break
+                                temp -= float(fixing['size'])
+                            fixing['position'] = str(temp)
+                        found = True
+                        break
                 if found == True:
                     continue
                 return_value.append(
