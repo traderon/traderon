@@ -18,7 +18,10 @@ def oanda_import(api_key, account_ID):
         for i in r.response['accounts']:
             resp = trades.TradesList(i['id'], params=params)
             tradesList = Client.request(resp)
-            for trade in tradesList["trades"]:
+            j = 0
+            while j < len(tradesList['trades']):
+                j += 1
+                trade = tradesList["trades"][j * -1]
                 found = False
                 if float(trade["realizedPL"]) == 0:
                     continue
@@ -47,21 +50,20 @@ def oanda_import(api_key, account_ID):
                     action = 'Sell'
                     action_2 = 'Buy'
                 for appended in return_value:
-                    # if len(appended["subs"]) == 2:
-                    sub_1 = appended["subs"][0]
-                    if appended['symbol'] == instrument and datetime.datetime.fromisoformat(trade['openTime'][0:26]) < datetime.datetime.fromisoformat(sub_1['date'][0:26]) and datetime.datetime.fromisoformat(trade['closeTime'][0:26]) > datetime.datetime.fromisoformat(sub_1['date'][0:26]):
+                    sub_F = appended["subs"][0]
+                    sub_L = appended['subs'][-1]
+                    if appended['symbol'] == instrument and datetime.datetime.fromisoformat(trade['openTime'][0:26]) < datetime.datetime.fromisoformat(sub_L['date'][0:26]) and datetime.datetime.fromisoformat(trade['openTime'][0:26]) > datetime.datetime.fromisoformat(sub_F['date'][0:26]):
                         appended['ret'] = str(
                             float(appended['ret']) + float(trade['realizedPL']))
                         appended['size'] = str(
                             float(appended['size']) + float(trade["initialUnits"]))
-                        appended['open_date'] = trade["openTime"]
                         appended['entry'] = trade["price"]
                         if float(appended['ret']) > 0:
                             appended['status'] = "WIN"
                         else:
                             appended['status'] = "LOSS"
-                        new_subs = [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": str(float(sub_1['position']) + float(trade["initialUnits"])), "price": trade["price"]}, {
-                            "action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["averageClosePrice"]}]
+                        new_subs = [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": "", "price": trade["price"]}, {
+                            "action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": "", "price": trade["averageClosePrice"]}]
                         appended['subs'].extend(new_subs)
                         appended['subs'].sort(key=sort_by_date)
                         temp = 0
