@@ -57,7 +57,6 @@ def oanda_import(api_key, account_ID):
                             float(appended['ret']) + float(trade['realizedPL']))
                         appended['size'] = str(
                             float(appended['size']) + float(trade["initialUnits"]))
-                        appended['entry'] = trade["price"]
                         if float(appended['ret']) > 0:
                             appended['status'] = "WIN"
                         else:
@@ -73,6 +72,7 @@ def oanda_import(api_key, account_ID):
                             else:
                                 temp -= float(fixing['size'])
                             fixing['position'] = str(temp)
+                        appended['exit'] = appended['subs'][-1]['price']
                         found = True
                         break
                 if found == True:
