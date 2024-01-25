@@ -71,7 +71,7 @@ def oanda_import(api_key, account_ID):
                                 temp += float(fixing['size'])
                             else:
                                 temp -= float(fixing['size'])
-                            fixing['position'] = str(temp)
+                            fixing['position'] = str(format(temp, '.2f'))
                         appended['exit'] = appended['subs'][-1]['price']
                         found = True
                         break
