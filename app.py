@@ -277,6 +277,59 @@ def get_chartdata():
     return jsonify({"accumulative_return": accumulative_return, "accumulative_return_total": accumulative_return_total, "xvalue_all": xvalue_all, "profit_factor": profit_factor, "avg_profit_factor": total_profit_factor / len(profit_factor), "avg_return": avg_return, "avg_return_total": avg_return_total / len(trades), "win_ratio": {"total": len(trades), "winning": win_count}, "pnl_total": pnl_total, "pnl_change": pnl_change, "pnl_day": pnl_day, "volume_day": volume_day, "total_pnl": total_pnl, "daily_pnl": daily_pnl, "daily_volume": daily_volume, "total_win_rate": total_win_rate, "daily_win_rate": daily_win_rate, "total_win_or_loss_score": total_win_or_loss_score})
 
 
+@app.route("/api/get-reports", methods=["POST"])
+def get_reports():
+    data = request.json
+    trades = Trades.query.filter_by(user_id=data["userId"]).all()
+    selectedIds = data["selected"]
+    trades.sort(key=sort_by_date)
+    total_return_x = []
+    total_return_y = []
+    total_return = 0
+    total_dates = []
+    daily_return = []
+    temp_date = ""
+    return_winner = []
+    return_winner_total = 0
+    return_loser = []
+    return_loser_total = 0
+    return_long = []
+    return_short = []
+    return_long_total = 0
+    return_short_total = 0
+    biggestProfit = 0
+    biggestLose = 0
+    for trade in trades:
+        if len(selectedIds) > 0 and not trade.trade_id in selectedIds:
+            continue
+        total_return_x.append(trade.open_date[0:10])
+        total_return += float(trade.ret)
+        total_return_y.append(total_return)
+        if trade.open_date[0:10] == temp_date:
+            daily_return[-1] += float(trade.ret)
+        else:
+            total_dates.append(trade.open_date[0:10])
+            daily_return.append(float(trade.ret))
+            temp_date = trade.open_date[0:10]
+        if trade.status == "WIN":
+            return_winner.append(float(trade.ret))
+            return_winner_total += float(trade.ret)
+        else:
+            return_loser.append(float(trade.ret))
+            return_loser_total += float(trade.ret)
+        if trade.side == "LONG":
+            return_long.append(float(trade.ret))
+            return_long_total += float(trade.ret)
+        else:
+            return_short.append(float(trade.ret))
+            return_short_total += float(trade.ret)
+        if float(trade.ret) > biggestProfit:
+            biggestProfit = float(trade.ret)
+        if float(trade.ret) < biggestLose:
+            biggestLose = float(trade.ret)
+    return jsonify({"totalReturnY": total_return_y, "totalReturnX": total_return_x, "totalReturn": total_return, "totalDates": total_dates, "dailyReturn": daily_return, "returnWin": return_winner, "returnWinTotal": return_winner_total, "returnLose": return_loser, "returnLoseTotal": return_loser_total, "returnLong": return_long, "returnLongTotal": return_long_total, "returnShort": return_short, "returnShortTotal": return_short_total, "biggestProfit": biggestProfit, "biggestLose": biggestLose})
+
+
 @app.route("/create")
 def createdb():
     db.create_all()
