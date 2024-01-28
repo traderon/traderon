@@ -299,6 +299,15 @@ def get_reports():
     return_short_total = 0
     biggestProfit = 0
     biggestLose = 0
+    closed_trades = []
+    closed_trades_total = 0
+    open_trades = []
+    open_trades_total = 0
+    daily_trades = []
+    win_count = 0
+    loss_count = 0
+    win_total = []
+    loss_total = []
     for trade in trades:
         if len(selectedIds) > 0 and not trade.trade_id in selectedIds:
             continue
@@ -307,9 +316,39 @@ def get_reports():
         total_return_y.append(total_return)
         if trade.open_date[0:10] == temp_date:
             daily_return[-1] += float(trade.ret)
+            daily_trades[-1] += 1
+            if trade.status == "WIN" or trade.status == "LOSS":
+                closed_trades[-1] += 1
+                closed_trades_total += 1
+                if trade.status == "WIN":
+                    win_total[-1] += 1
+                    win_count += 1
+                else:
+                    loss_total[-1] += 1
+                    loss_count += 1
+            else:
+                open_trades[-1] += 1
+                open_trades_total += 1
         else:
             total_dates.append(trade.open_date[0:10])
             daily_return.append(float(trade.ret))
+            daily_trades.append(1)
+            if trade.status == "WIN" or trade.status == "LOSS":
+                closed_trades.append(1)
+                closed_trades_total += 1
+                open_trades.append(0)
+                if trade.status == "WIN":
+                    win_count += 1
+                    win_total.append(1)
+                    loss_total.append(0)
+                else:
+                    loss_count += 1
+                    win_total.append(0)
+                    loss_total.append(1)
+            else:
+                closed_trades.append(0)
+                open_trades.append(1)
+                open_trades_total += 1
             temp_date = trade.open_date[0:10]
         if trade.status == "WIN":
             return_winner.append(float(trade.ret))
@@ -327,7 +366,7 @@ def get_reports():
             biggestProfit = float(trade.ret)
         if float(trade.ret) < biggestLose:
             biggestLose = float(trade.ret)
-    return jsonify({"totalReturnY": total_return_y, "totalReturnX": total_return_x, "totalReturn": total_return, "totalDates": total_dates, "dailyReturn": daily_return, "returnWin": return_winner, "returnWinTotal": return_winner_total, "returnLose": return_loser, "returnLoseTotal": return_loser_total, "returnLong": return_long, "returnLongTotal": return_long_total, "returnShort": return_short, "returnShortTotal": return_short_total, "biggestProfit": biggestProfit, "biggestLose": biggestLose})
+    return jsonify({"totalReturnY": total_return_y, "totalReturnX": total_return_x, "totalReturn": total_return, "totalDates": total_dates, "dailyReturn": daily_return, "returnWin": return_winner, "returnWinTotal": return_winner_total, "returnLose": return_loser, "returnLoseTotal": return_loser_total, "returnLong": return_long, "returnLongTotal": return_long_total, "returnShort": return_short, "returnShortTotal": return_short_total, "biggestProfit": biggestProfit, "biggestLose": biggestLose, "totalClosedTrades": closed_trades_total, "closedTrades": closed_trades, "totalOpenTrades": open_trades_total, "openTrades": open_trades, "totalTrades": len(total_return_x), "dailyTrades": daily_trades, "totalWinner": win_count, "totalLoser": loss_count, "dailyWinners": win_total, "dailyLosers": loss_total})
 
 
 @app.route("/create")
