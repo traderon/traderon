@@ -308,6 +308,8 @@ def get_reports():
     loss_count = 0
     win_total = []
     loss_total = []
+    be_count = 0
+    be_total = []
     for trade in trades:
         if len(selectedIds) > 0 and not trade.trade_id in selectedIds:
             continue
@@ -317,6 +319,9 @@ def get_reports():
         if trade.open_date[0:10] == temp_date:
             daily_return[-1] += float(trade.ret)
             daily_trades[-1] += 1
+            if float(trade.ret) == 0:
+                be_total[-1] += 1
+                be_count += 1
             if trade.status == "WIN" or trade.status == "LOSS":
                 closed_trades[-1] += 1
                 closed_trades_total += 1
@@ -349,6 +354,11 @@ def get_reports():
                 closed_trades.append(0)
                 open_trades.append(1)
                 open_trades_total += 1
+            if float(trade.ret) == 0:
+                be_total.append(1)
+                be_count += 1
+            else:
+                be_total.append(0)
             temp_date = trade.open_date[0:10]
         if trade.status == "WIN":
             return_winner.append(float(trade.ret))
@@ -366,7 +376,7 @@ def get_reports():
             biggestProfit = float(trade.ret)
         if float(trade.ret) < biggestLose:
             biggestLose = float(trade.ret)
-    return jsonify({"totalReturnY": total_return_y, "totalReturnX": total_return_x, "totalReturn": total_return, "totalDates": total_dates, "dailyReturn": daily_return, "returnWin": return_winner, "returnWinTotal": return_winner_total, "returnLose": return_loser, "returnLoseTotal": return_loser_total, "returnLong": return_long, "returnLongTotal": return_long_total, "returnShort": return_short, "returnShortTotal": return_short_total, "biggestProfit": biggestProfit, "biggestLose": biggestLose, "totalClosedTrades": closed_trades_total, "closedTrades": closed_trades, "totalOpenTrades": open_trades_total, "openTrades": open_trades, "totalTrades": len(total_return_x), "dailyTrades": daily_trades, "totalWinner": win_count, "totalLoser": loss_count, "dailyWinners": win_total, "dailyLosers": loss_total})
+    return jsonify({"totalReturnY": total_return_y, "totalReturnX": total_return_x, "totalReturn": total_return, "totalDates": total_dates, "dailyReturn": daily_return, "returnWin": return_winner, "returnWinTotal": return_winner_total, "returnLose": return_loser, "returnLoseTotal": return_loser_total, "returnLong": return_long, "returnLongTotal": return_long_total, "returnShort": return_short, "returnShortTotal": return_short_total, "biggestProfit": biggestProfit, "biggestLose": biggestLose, "totalClosedTrades": closed_trades_total, "closedTrades": closed_trades, "totalOpenTrades": open_trades_total, "openTrades": open_trades, "totalTrades": len(total_return_x), "dailyTrades": daily_trades, "totalWinner": win_count, "totalLoser": loss_count, "dailyWinners": win_total, "dailyLosers": loss_total, "beCount": be_count, "dailyBe": be_total})
 
 
 @app.route("/create")
