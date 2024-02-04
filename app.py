@@ -48,6 +48,8 @@ class Trades(db.Model):
     entry = db.Column(db.String(20))
     exit = db.Column(db.String(20))
     size = db.Column(db.String(20))
+    pips = db.Column(db.String(20))
+    ret_pips = db.Column(db.String(30))
     ret = db.Column(db.String(20))
     side = db.Column(db.String(10))
     setups = db.Column(db.String(100))
@@ -157,7 +159,7 @@ def import_trades():
             if check_trade:
                 continue
             new_trade = Trades(user_id=userid, account_id=trade_data["account_id"], broker=trade_data["broker"], trade_id=trade_data["trade_id"], status=trade_data["status"], open_date=trade_data["open_date"],
-                               symbol=trade_data["symbol"], entry=trade_data["entry"], exit=trade_data["exit"], size=trade_data["size"], ret=trade_data["ret"], side=trade_data["side"], setups=trade_data["setups"], mistakes=trade_data["mistakes"])
+                               symbol=trade_data["symbol"], entry=trade_data["entry"], exit=trade_data["exit"], size=trade_data["size"], pips=trade_data["pips"], ret_pips=trade_data["ret_pips"], ret=trade_data["ret"], side=trade_data["side"], setups=trade_data["setups"], mistakes=trade_data["mistakes"])
             db.session.add(new_trade)
             for sub in trade_data["subs"]:
                 new_sub = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=sub["action"], spread=sub["spread"],
@@ -184,7 +186,7 @@ def get_trade_data():
             subs.append({"action": sub.action, "spread": sub.spread, "type": sub.type,
                         "date": sub.date, "size": sub.size, "position": sub.position, "price": sub.price, })
         data_array.append({"id": data.trade_id, "broker": data.broker, "status": data.status, "openDate": data.open_date, "symbol": data.symbol,
-                          "entry": data.entry, "exit": data.exit, "size": data.size, "return": data.ret, "side": data.side, "setups": data.setups, "mistakes": data.mistakes, "subs": subs})
+                          "entry": data.entry, "exit": data.exit, "size": data.size, "pips": data.pips, "returnPips": data.ret_pips, "return": data.ret, "side": data.side, "setups": data.setups, "mistakes": data.mistakes, "subs": subs})
     return jsonify(data_array)
 
 
