@@ -185,7 +185,7 @@ def get_trade_data():
         for sub in subdata_display:
             subs.append({"action": sub.action, "spread": sub.spread, "type": sub.type,
                         "date": sub.date, "size": sub.size, "position": sub.position, "price": sub.price, })
-        data_array.append({"id": data.trade_id, "broker": data.broker, "status": data.status, "openDate": data.open_date, "symbol": data.symbol,
+        data_array.append({"id": data.trade_id, "accountId": data.account_id, "broker": data.broker, "status": data.status, "openDate": data.open_date, "symbol": data.symbol,
                           "entry": data.entry, "exit": data.exit, "size": data.size, "pips": data.pips, "returnPips": data.ret_pips, "return": data.ret, "side": data.side, "setups": data.setups, "mistakes": data.mistakes, "subs": subs})
     return jsonify(data_array)
 

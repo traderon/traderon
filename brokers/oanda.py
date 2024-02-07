@@ -62,7 +62,7 @@ def oanda_import(api_key, account_ID):
                         appended['pips'] = str(
                             format(float(appended['pips']) + pips, '.2f'))
                         appended["ret_pips"] = str(
-                            format(float(appended['ret']) / float(appended['pips']), '.10f'))
+                            format(float(appended['ret']) / abs(float(appended['pips'])), '.10f'))
                         if float(appended['ret']) > 0:
                             appended['status'] = "WIN"
                         else:
@@ -84,7 +84,7 @@ def oanda_import(api_key, account_ID):
                 if found == True:
                     continue
                 return_value.append(
-                    {"account_id": account_ID, "broker": "Oanda", "trade_id": trade["id"], "status": status, "open_date": trade["openTime"], "symbol": instrument, "entry": trade["price"], "exit": trade["averageClosePrice"], "size": trade["initialUnits"], "pips": str(format(pips, '.2f')), "ret_pips": str(format(float(trade["realizedPL"]) / pips, '.10f')), "ret": trade["realizedPL"], "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": "0", "price": trade["averageClosePrice"]}]})
+                    {"account_id": account_ID, "broker": "Oanda", "trade_id": trade["id"], "status": status, "open_date": trade["openTime"], "symbol": instrument, "entry": trade["price"], "exit": trade["averageClosePrice"], "size": trade["initialUnits"], "pips": str(format(pips, '.2f')), "ret_pips": str(format(float(trade["realizedPL"]) / abs(pips), '.10f')), "ret": trade["realizedPL"], "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": "0", "price": trade["averageClosePrice"]}]})
         return {'trades': return_value}
     except Exception as e:
         print(e)
