@@ -351,7 +351,7 @@ def extract_data(orders, loginId):
             action_2 = "Buy"
             trade['size'] = "-" + trade['size']
         pips = (float(trade["closed_price"]) -
-                float(trade["open_price"])) * float(trade["size"]) * 100
+                float(trade["open_price"])) * float(trade["size"]) * 100000
         # grouping
         # for appended in return_value:
         #     sub_F = appended["subs"][0]
