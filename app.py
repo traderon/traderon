@@ -12,7 +12,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from brokers.oanda import oanda_import
 from brokers.metatrader import metatrader_import
 
-
 load_dotenv()
 
 app = Flask(__name__)
@@ -154,7 +153,8 @@ def import_trades():
     if broker == "Oanda":
         imported_trades = oanda_import(tokens["key"], tokens["id"])
     if broker == "Metatrader":
-        imported_trades = metatrader_import(tokens["key"], tokens["id"])
+        imported_trades = metatrader_import(
+            tokens["id"], tokens["password"], tokens["mtType"], tokens["passphrase"])
     if 'trades' in imported_trades:
         userid = tokens["user"]
         for trade_data in imported_trades['trades']:
