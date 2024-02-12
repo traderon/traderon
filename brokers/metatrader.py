@@ -5,10 +5,6 @@ import uuid
 import time as tt
 
 
-def sort_by_date(dic):
-    return dic["date"]
-
-
 def metatrader_import(inputid, inputpassword, inputtype, inputpassphrase):
     "type message 'connecting account from metatrader'"
     login = inputid
@@ -329,7 +325,6 @@ def get_metatrader_orders(inputid):
 def extract_data(orders, loginId):
     return_value = []
     for trade in orders:
-        # found = False
         if float(trade["profit"]) > 0:
             status = "WIN"
             if float(trade["open_price"]) > float(trade["closed_price"]):
@@ -352,39 +347,6 @@ def extract_data(orders, loginId):
             trade['size'] = "-" + trade['size']
         pips = (float(trade["closed_price"]) -
                 float(trade["open_price"])) * float(trade["size"]) * 100000
-        # grouping
-        # for appended in return_value:
-        #     sub_F = appended["subs"][0]
-        #     sub_L = appended['subs'][-1]
-        #     if appended['symbol'] == instrument and datetime.fromisoformat(trade['open_time']) < datetime.fromisoformat(sub_L['date']) and datetime.fromisoformat(trade['close_time']) > datetime.fromisoformat(sub_F['date']):
-        #         appended['ret'] = str(
-        #             float(appended['ret']) + float(trade['profit']))
-        #         appended['size'] = str(
-        #             float(appended['size']) + float(trade["size"]))
-        #         appended['pips'] = str(
-        #             format(float(appended['pips']) + pips, '.5f'))
-        #         appended["ret_pips"] = str(
-        #             format(float(appended['ret']) / abs(float(appended['pips'])), '.10f'))
-        #         if float(appended['ret']) > 0:
-        #             appended['status'] = "WIN"
-        #         else:
-        #             appended['status'] = "LOSS"
-        #         new_subs = [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["open_time"], "size": str(abs(float(trade["size"]))), "position": "", "price": trade["open_price"]}, {
-        #                     "action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["close_time"], "size": str(abs(float(trade["size"]))), "position": "", "price": trade["closed_price"]}]
-        #         appended['subs'].extend(new_subs)
-        #         appended['subs'].sort(key=sort_by_date)
-        #         temp = 0
-        #         for fixing in appended['subs']:
-        #             if fixing['action'] == 'Buy':
-        #                 temp += float(fixing['size'])
-        #             else:
-        #                 temp -= float(fixing['size'])
-        #             fixing['position'] = str(format(temp, '.2f'))
-        #         appended['exit'] = appended['subs'][-1]['price']
-        #         found = True
-        #         break
-        # if found == True:
-        #     continue
         return_value.append(
             {"account_id": loginId, "broker": "Metatrader", "trade_id": trade["id"], "status": status, "open_date": trade["open_time"], "symbol": instrument, "entry": trade["open_price"], "exit": trade["closed_price"], "size": trade["size"], "pips": str(format(pips, '.5f')), "ret_pips": str(format(float(trade["profit"]) / abs(pips), '.10f')), "ret": trade["profit"], "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["open_time"], "size": str(abs(float(trade["size"]))), "position": trade["size"], "price": trade["open_price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["close_time"], "size": str(abs(float(trade["size"]))), "position": "0", "price": trade["closed_price"]}]})
     return return_value
