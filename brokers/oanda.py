@@ -57,6 +57,8 @@ def oanda_import(api_key, account_ID):
                     if appended['symbol'] == instrument and datetime.datetime.fromisoformat(trade['openTime'][0:26]) < datetime.datetime.fromisoformat(sub_L['date'][0:26]) and datetime.datetime.fromisoformat(trade['openTime'][0:26]) > datetime.datetime.fromisoformat(sub_F['date'][0:26]):
                         appended['ret'] = str(
                             float(appended['ret']) + float(trade['realizedPL']))
+                        appended['ret_net'] = str(
+                            float(appended['ret_net']) + float(trade['realizedPL']))
                         appended['size'] = str(
                             float(appended['size']) + float(trade["initialUnits"]))
                         appended['pips'] = str(
@@ -84,7 +86,7 @@ def oanda_import(api_key, account_ID):
                 if found == True:
                     continue
                 return_value.append(
-                    {"account_id": account_ID, "broker": "Oanda", "trade_id": trade["id"], "status": status, "open_date": trade["openTime"], "symbol": instrument, "entry": trade["price"], "exit": trade["averageClosePrice"], "size": trade["initialUnits"], "pips": str(format(pips, '.5f')), "ret_pips": str(format(float(trade["realizedPL"]) / abs(pips), '.10f')), "ret": trade["realizedPL"], "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": "0", "price": trade["averageClosePrice"]}]})
+                    {"account_id": account_ID, "broker": "Oanda", "trade_id": trade["id"], "status": status, "open_date": trade["openTime"], "symbol": instrument, "entry": trade["price"], "exit": trade["averageClosePrice"], "size": trade["initialUnits"], "pips": str(format(pips, '.5f')), "ret_pips": str(format(float(trade["realizedPL"]) / abs(pips), '.10f')), "ret": trade["realizedPL"], "ret_net": trade["realizedPL"], "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["openTime"], "size": str(abs(float(trade["initialUnits"]))), "position": trade["initialUnits"], "price": trade["price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["closeTime"], "size": str(abs(float(trade["initialUnits"]))), "position": "0", "price": trade["averageClosePrice"]}]})
         return {'trades': return_value}
     except Exception as e:
         print(e)
