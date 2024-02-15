@@ -398,12 +398,22 @@ def getfilteritem():
     trades = Trades.query.all()
     available_brokers = []
     available_symbols = []
+    broker_account = []
     for trade in trades:
         if not trade.broker in available_brokers:
             available_brokers.append(trade.broker)
         if not trade.symbol in available_symbols:
             available_symbols.append(trade.symbol)
-    return jsonify({"brokers": available_brokers, "symbols": available_symbols, "status": ["WIN", "LOSS"]})
+    if len(available_brokers) > 0:
+        for broker in available_brokers:
+            available_accounts = []
+            trades_broker = Trades.query.filter_by(broker=broker).all()
+            for trade_broker in trades_broker:
+                if not trade_broker.account_id in available_accounts:
+                    available_accounts.append(trade_broker.account_id)
+                    broker_account.append(
+                        broker + " " + available_accounts[-1])
+    return jsonify({"brokers": broker_account, "symbols": available_symbols, "status": ["WIN", "LOSS"]})
 
 
 if __name__ == '__main__':
