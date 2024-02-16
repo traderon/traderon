@@ -196,6 +196,23 @@ def get_trade_data():
     return jsonify(data_array)
 
 
+@app.route("/api/delete_trades", methods=["POST"])
+def delete_trade_data():
+    params = request.json
+    user_id = params["userId"]
+    trade_ids = params["tradeId"]
+    trades = Trades.query.filter_by(user_id=user_id).all()
+    for trade in trades:
+        if trade.trade_id in trade_ids:
+            db.session.delete(trade)
+            subtrades = SubTrades.query.filter_by(
+                user_id=user_id, trade_id=trade.trade_id).all()
+            for subtrade in subtrades:
+                db.session.delete(subtrade)
+    db.session.commit()
+    return "succeed"
+
+
 @app.route("/create-payment-intent", methods=["POST"])
 def create_payment():
     try:
