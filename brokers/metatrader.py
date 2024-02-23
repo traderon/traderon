@@ -280,6 +280,8 @@ def get_metatrader_orders(inputid):
                     orden['closed_price'] = str(
                         i['closePrice']) if "closePrice" in i else ""
                     orden['taxes'] = str(i['taxes']) if 'taxes' in i else '0.0'
+                    if "marketValue" not in i:
+                        continue
                     orden['profit'] = str(
                         i['marketValue']) if "marketValue" in i else ""
                 except Exception as err:
