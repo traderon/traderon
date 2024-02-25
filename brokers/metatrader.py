@@ -16,6 +16,7 @@ def metatrader_import(inputid, inputpassword, inputtype, inputpassphrase):
         "auth-token": "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI0NjdmNDc0YWIzMzk3ZmQ0NTZjMWU0YzFlYzE1YmEzMiIsInBlcm1pc3Npb25zIjpbXSwiYWNjZXNzUnVsZXMiOlt7ImlkIjoidHJhZGluZy1hY2NvdW50LW1hbmFnZW1lbnQtYXBpIiwibWV0aG9kcyI6WyJ0cmFkaW5nLWFjY291bnQtbWFuYWdlbWVudC1hcGk6cmVzdDpwdWJsaWM6KjoqIl0sInJvbGVzIjpbInJlYWRlciIsIndyaXRlciJdLCJyZXNvdXJjZXMiOlsiKjokVVNFUl9JRCQ6KiJdfSx7ImlkIjoibWV0YWFwaS1yZXN0LWFwaSIsIm1ldGhvZHMiOlsibWV0YWFwaS1hcGk6cmVzdDpwdWJsaWM6KjoqIl0sInJvbGVzIjpbInJlYWRlciIsIndyaXRlciJdLCJyZXNvdXJjZXMiOlsiKjokVVNFUl9JRCQ6KiJdfSx7ImlkIjoibWV0YWFwaS1ycGMtYXBpIiwibWV0aG9kcyI6WyJtZXRhYXBpLWFwaTp3czpwdWJsaWM6KjoqIl0sInJvbGVzIjpbInJlYWRlciIsIndyaXRlciJdLCJyZXNvdXJjZXMiOlsiKjokVVNFUl9JRCQ6KiJdfSx7ImlkIjoibWV0YWFwaS1yZWFsLXRpbWUtc3RyZWFtaW5nLWFwaSIsIm1ldGhvZHMiOlsibWV0YWFwaS1hcGk6d3M6cHVibGljOio6KiJdLCJyb2xlcyI6WyJyZWFkZXIiLCJ3cml0ZXIiXSwicmVzb3VyY2VzIjpbIio6JFVTRVJfSUQkOioiXX0seyJpZCI6Im1ldGFzdGF0cy1hcGkiLCJtZXRob2RzIjpbIm1ldGFzdGF0cy1hcGk6cmVzdDpwdWJsaWM6KjoqIl0sInJvbGVzIjpbInJlYWRlciJdLCJyZXNvdXJjZXMiOlsiKjokVVNFUl9JRCQ6KiJdfSx7ImlkIjoicmlzay1tYW5hZ2VtZW50LWFwaSIsIm1ldGhvZHMiOlsicmlzay1tYW5hZ2VtZW50LWFwaTpyZXN0OnB1YmxpYzoqOioiXSwicm9sZXMiOlsicmVhZGVyIiwid3JpdGVyIl0sInJlc291cmNlcyI6WyIqOiRVU0VSX0lEJDoqIl19LHsiaWQiOiJjb3B5ZmFjdG9yeS1hcGkiLCJtZXRob2RzIjpbImNvcHlmYWN0b3J5LWFwaTpyZXN0OnB1YmxpYzoqOioiXSwicm9sZXMiOlsicmVhZGVyIiwid3JpdGVyIl0sInJlc291cmNlcyI6WyIqOiRVU0VSX0lEJDoqIl19LHsiaWQiOiJtdC1tYW5hZ2VyLWFwaSIsIm1ldGhvZHMiOlsibXQtbWFuYWdlci1hcGk6cmVzdDpkZWFsaW5nOio6KiIsIm10LW1hbmFnZXItYXBpOnJlc3Q6cHVibGljOio6KiJdLCJyb2xlcyI6WyJyZWFkZXIiLCJ3cml0ZXIiXSwicmVzb3VyY2VzIjpbIio6JFVTRVJfSUQkOioiXX0seyJpZCI6ImJpbGxpbmctYXBpIiwibWV0aG9kcyI6WyJiaWxsaW5nLWFwaTpyZXN0OnB1YmxpYzoqOioiXSwicm9sZXMiOlsicmVhZGVyIl0sInJlc291cmNlcyI6WyIqOiRVU0VSX0lEJDoqIl19XSwidG9rZW5JZCI6IjIwMjEwMjEzIiwiaW1wZXJzb25hdGVkIjpmYWxzZSwicmVhbFVzZXJJZCI6IjQ2N2Y0NzRhYjMzOTdmZDQ1NmMxZTRjMWVjMTViYTMyIiwiaWF0IjoxNzA3NjY4MDI4fQ.UpXWWnXzBQ0r1-FzmAg0dRvE_n4X7MdftJsl2kKvlmooF8oUWrJqibtAo-F2Kq2n4uUAePoTXuefgC53Cg1K1jnhfsNSgJO640OV4y38bGRGc_ezDP3fcW_6yq2RD1gxdt_Z4Ntw6oZUj7DLyw9gvhV0nL9-m0wN-z1X5F_hnaWbd_Q_3oNlP3r1Kk5gDwnyS3F8iYc6fimVcYp0b-m9yeKGgEKu40Ce14Rq7eRoqEZozeYoU1owWldFBD-xDA6CWl9aoT7ODH6x4Mc9AFcorsbxTl9UmyR5thmzr8DpV2OWeQlAK7VFmJ1L8d9Ih08XrSZYhX5tetfUXZlL-sdeqYH67Rn5LBMIfGyt1PxEQpSL8OuZfdB4vO6lm6fEYne2T0h6qjVNVYXTu03U_NdxGM9ShsW71i_08wYpv0AV3z4MRTB0DTFXmz3E2NzxSbCMJNMkIyggrIU8DvF3IUifkFHmLTwZI2U7igMIGf45CcFUDPdD0jaiiqP4tJc-xPl17ZTE5ZINzG0_yRWpKv8B8VX9egnJ65RTvYqdUDNyZtuM9kXgFT23KaXQs7MdfwuDv1yQDr-CHSMVLHVHduSrj0h0FnEc8ojvYn628fZG8eaj70srY6Gk_LueQTh8s8rRZHUQjPW6_R3UVTep9XaYUHdwaNGH8eTYa7FgJOGax9E"
         # "instrument":'SPX500_USD'
     }
+    symbol_contract = {}
     # retrieve MetaApi MetaTrader account trades
     response = requests.request(
         "GET", "https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai/users/current/accounts?offset=0&limit=1000&endpointVersion=v1", headers=headers).json()
@@ -26,6 +27,12 @@ def metatrader_import(inputid, inputpassword, inputtype, inputpassphrase):
             if trade['login'] == login:
                 isCreated = True
                 account = trade['_id']
+                symbols = requests.request(
+                    "GET", "https://mt-client-api-v1.new-york.agiliumtrade.ai/users/current/accounts/"+account+"/symbols", headers=headers).json()
+                for symbol in symbols:
+                    symbol_info = requests.request(
+                        "GET", "https://mt-client-api-v1.new-york.agiliumtrade.ai/users/current/accounts/"+account+"/symbols/"+symbol+"/specification", headers=headers).json()
+                    symbol_contract[symbol] = symbol_info["contractSize"]
                 response = requests.request(
                     "GET", "https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai/users/current/accounts/"+account, headers=headers).json()
                 key = response['version']
@@ -121,7 +128,7 @@ def metatrader_import(inputid, inputpassword, inputtype, inputpassphrase):
             return {"error": "Error occured"}
     get_orders = get_metatrader_orders(login)
     if "value" in get_orders:
-        trade_data = extract_data(get_orders["value"], login)
+        trade_data = extract_data(get_orders["value"], login, symbol_contract)
         return {'trades': trade_data}
     else:
         return {"error": get_orders["error"]}
@@ -324,7 +331,7 @@ def get_metatrader_orders(inputid):
         return {"error": "Error when obtaining the orders, verify that your account is connected to the broker"}
 
 
-def extract_data(orders, loginId):
+def extract_data(orders, loginId, contract):
     return_value = []
     for trade in orders:
         if float(trade["profit"]) > 0:
@@ -348,7 +355,7 @@ def extract_data(orders, loginId):
             action_2 = "Buy"
             trade['size'] = "-" + trade['size']
         pips = (float(trade["closed_price"]) -
-                float(trade["open_price"])) * float(trade["size"]) * 100000
+                float(trade["open_price"])) * float(trade["size"]) * contract[trade["item"]]
         return_value.append(
             {"account_id": loginId, "broker": "Metatrader", "trade_id": trade["id"], "status": status, "open_date": trade["open_time"], "symbol": instrument, "entry": trade["open_price"], "exit": trade["closed_price"], "size": trade["size"], "pips": str(format(pips, '.5f')), "ret_pips": str(format(float(trade["profit"]) / abs(pips), '.10f')), "ret": trade["profit"], "ret_percent": "0", "ret_net": str(format(float(trade["profit"]) + float(trade["commission"]) + float(trade["swap"]), '.10f')), "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["open_time"], "size": str(abs(float(trade["size"]))), "position": trade["size"], "price": trade["open_price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["close_time"], "size": str(abs(float(trade["size"]))), "position": "0", "price": trade["closed_price"]}]})
     return return_value
