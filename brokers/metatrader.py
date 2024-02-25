@@ -354,8 +354,13 @@ def extract_data(orders, loginId, contract):
             action = "Sell"
             action_2 = "Buy"
             trade['size'] = "-" + trade['size']
-        pips = (float(trade["closed_price"]) -
-                float(trade["open_price"])) * float(trade["size"]) * contract[trade["item"]]
+        contract_size = contract[trade["item"]]
+        if contract_size >= 100:
+            pips = (float(trade["closed_price"]) -
+                    float(trade["open_price"])) * float(trade["size"]) * contract_size
+        else:
+            pips = (float(trade["closed_price"]) -
+                    float(trade["open_price"])) * float(trade["size"]) * contract_size * contract_size
         return_value.append(
             {"account_id": loginId, "broker": "Metatrader", "trade_id": trade["id"], "status": status, "open_date": trade["open_time"], "symbol": instrument, "entry": trade["open_price"], "exit": trade["closed_price"], "size": trade["size"], "pips": str(format(pips, '.5f')), "ret_pips": str(format(float(trade["profit"]) / abs(pips), '.10f')), "ret": trade["profit"], "ret_percent": "0", "ret_net": str(format(float(trade["profit"]) + float(trade["commission"]) + float(trade["swap"]), '.10f')), "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["open_time"], "size": str(abs(float(trade["size"]))), "position": trade["size"], "price": trade["open_price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["close_time"], "size": str(abs(float(trade["size"]))), "position": "0", "price": trade["closed_price"]}]})
     return return_value
