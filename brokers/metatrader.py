@@ -27,12 +27,6 @@ def metatrader_import(inputid, inputpassword, inputtype, inputpassphrase):
             if trade['login'] == login:
                 isCreated = True
                 account = trade['_id']
-                symbols = requests.request(
-                    "GET", "https://mt-client-api-v1.new-york.agiliumtrade.ai/users/current/accounts/"+account+"/symbols", headers=headers).json()
-                for symbol in symbols:
-                    symbol_info = requests.request(
-                        "GET", "https://mt-client-api-v1.new-york.agiliumtrade.ai/users/current/accounts/"+account+"/symbols/"+symbol+"/specification", headers=headers).json()
-                    symbol_contract[symbol] = symbol_info["contractSize"]
                 response = requests.request(
                     "GET", "https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai/users/current/accounts/"+account, headers=headers).json()
                 key = response['version']
@@ -128,7 +122,8 @@ def metatrader_import(inputid, inputpassword, inputtype, inputpassphrase):
             return {"error": "Error occured"}
     get_orders = get_metatrader_orders(login)
     if "value" in get_orders:
-        trade_data = extract_data(get_orders["value"], login, symbol_contract)
+        trade_data = extract_data(
+            get_orders["value"], login, get_orders["contracts"])
         return {'trades': trade_data}
     else:
         return {"error": get_orders["error"]}
@@ -137,6 +132,7 @@ def metatrader_import(inputid, inputpassword, inputtype, inputpassphrase):
 def get_metatrader_orders(inputid):
     login = inputid
     orders = []
+    symbol_contract = {}
     "type message 'Get orders from metatrader'"
     # print('get spot order')
     headers = {
@@ -152,6 +148,13 @@ def get_metatrader_orders(inputid):
             if trade['login'] == login:
                 region = trade['region']
                 account = trade['_id']
+                symbols = requests.request(
+                    "GET", "https://mt-client-api-v1.new-york.agiliumtrade.ai/users/current/accounts/"+account+"/symbols", headers=headers).json()
+                for symbol in symbols:
+                    symbol_info = requests.request(
+                        "GET", "https://mt-client-api-v1.new-york.agiliumtrade.ai/users/current/accounts/"+account+"/symbols/"+symbol+"/specification", headers=headers).json()
+                    symbol_contract[symbol] = symbol_info["contractSize"]
+                # print(symbol_contract)
                 key = trade['version']
                 if key == 4:
                     meta_type = 'mt4'
@@ -322,7 +325,7 @@ def get_metatrader_orders(inputid):
                         orden['closed_price'] = str(closePrice/countSell)
                     orders.append(orden)
 
-        return {"value": orders}
+        return {"value": orders, "contracts": symbol_contract}
 
     except Exception as err:
         print(err)
