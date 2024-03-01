@@ -361,9 +361,15 @@ def extract_data(orders, loginId, contract):
         if contract_size >= 100:
             pips = (float(trade["closed_price"]) -
                     float(trade["open_price"])) * float(trade["size"]) * contract_size
+            valueP = 100
         else:
             pips = (float(trade["closed_price"]) -
                     float(trade["open_price"])) * float(trade["size"]) * contract_size * contract_size
+            valueP = contract_size
+        returnP = abs(float(trade["profit"]) * valueP * 500 / float(trade["open_price"]) / (
+            float(trade["profit"]) / abs(pips)) / float(trade["size"]) / contract_size)
+        if float(trade["profit"]) < 0:
+            returnP = 0 - returnP
         return_value.append(
-            {"account_id": loginId, "broker": "Metatrader", "trade_id": trade["id"], "status": status, "open_date": trade["open_time"], "symbol": instrument, "entry": trade["open_price"], "exit": trade["closed_price"], "size": trade["size"], "pips": str(format(pips, '.5f')), "ret_pips": str(format(float(trade["profit"]) / abs(pips), '.10f')), "ret": trade["profit"], "ret_percent": "0", "ret_net": str(format(float(trade["profit"]) + float(trade["commission"]) + float(trade["swap"]), '.10f')), "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["open_time"], "size": str(abs(float(trade["size"]))), "position": trade["size"], "price": trade["open_price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["close_time"], "size": str(abs(float(trade["size"]))), "position": "0", "price": trade["closed_price"]}]})
+            {"account_id": loginId, "broker": "Metatrader", "trade_id": trade["id"], "status": status, "open_date": trade["open_time"], "symbol": instrument, "entry": trade["open_price"], "exit": trade["closed_price"], "size": trade["size"], "pips": str(format(pips, '.5f')), "ret_pips": str(format(float(trade["profit"]) / abs(pips), '.10f')), "ret": trade["profit"], "ret_percent": str(format(returnP, '.4f')), "ret_net": str(format(float(trade["profit"]) + float(trade["commission"]) + float(trade["swap"]), '.10f')), "side": side, "setups": "", "mistakes": "", "subs": [{"action": action, "spread": "SINGLE", "type": "FOREX", "date": trade["open_time"], "size": str(abs(float(trade["size"]))), "position": trade["size"], "price": trade["open_price"]}, {"action": action_2, "spread": "SINGLE", "type": "FOREX", "date": trade["close_time"], "size": str(abs(float(trade["size"]))), "position": "0", "price": trade["closed_price"]}]})
     return return_value
