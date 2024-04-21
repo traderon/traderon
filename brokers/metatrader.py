@@ -366,8 +366,12 @@ def extract_data(orders, loginId, contract):
             pips = (float(trade["closed_price"]) -
                     float(trade["open_price"])) * float(trade["size"]) * contract_size * contract_size
             valueP = contract_size
-        returnP = abs(float(trade["profit"]) * valueP * 500 / float(trade["open_price"]) / (
-            float(trade["profit"]) / abs(pips)) / float(trade["size"]) / contract_size)
+        if action == "Buy":
+            returnP = abs(float(trade["profit"]) * valueP * 500 / float(trade["open_price"]) / (
+                float(trade["profit"]) / abs(pips)) / float(trade["size"]) / contract_size)
+        else:
+            returnP = abs(float(trade["profit"]) * valueP * 500 / float(trade["closed_price"]) / (
+                float(trade["profit"]) / abs(pips)) / float(trade["size"]) / contract_size)
         if float(trade["profit"]) < 0:
             returnP = 0 - returnP
         return_value.append(

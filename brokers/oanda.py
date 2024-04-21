@@ -51,8 +51,12 @@ def oanda_import(api_key, account_ID):
                     action_2 = 'Buy'
                 pips = (float(trade['averageClosePrice']) -
                         float(trade['price'])) * float(trade['initialUnits']) * 100
-                return_percent = abs(float(
-                    trade["realizedPL"]) * 500 / float(trade["price"]) / (float(trade["realizedPL"]) / pips) / float(trade["initialUnits"]))
+                if action == 'Buy':
+                    return_percent = abs(float(
+                        trade["realizedPL"]) * 500 / float(trade["price"]) / (float(trade["realizedPL"]) / pips) / float(trade["initialUnits"]))
+                else:
+                    return_percent = abs(float(
+                        trade["realizedPL"]) * 500 / float(trade["averageClosePrice"]) / (float(trade["realizedPL"]) / pips) / float(trade["initialUnits"]))
                 if (float(trade["realizedPL"]) < 0):
                     return_percent = 0 - return_percent
                 for appended in return_value:
