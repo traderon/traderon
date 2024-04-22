@@ -14,7 +14,7 @@ from brokers.metatrader import metatrader_import
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../build', static_url_path='/')
 SECRET_KEY = os.environ.get("SECRET_KEY")
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 # print(SECRET_KEY)
@@ -98,8 +98,8 @@ def sort_by_date(dic):
 
 
 @app.route("/")
-def testRoute():
-    return "HELLO, this is a test. server working!!!"
+def index():
+    return app.send_static_file('index.html')
 
 
 @app.route("/api/user/register", methods=["POST"])
