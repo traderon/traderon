@@ -7,3 +7,4 @@ python-dotenv
 werkzeug
 flask-mysqldb
 stripe
+oandapyV20
