@@ -8,6 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_socketio import SocketIO, emit
 
 from brokers.oanda import oanda_import
 from brokers.metatrader import metatrader_import
