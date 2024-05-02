@@ -136,7 +136,7 @@ def login_user():
         else:
             expired = 1
         token = jwt.encode({'public_id': user.public_id, 'email': user.email, 'membership': user.membership, 'expired': expired, 'iat': datetime.utcnow(), 'exp': datetime.utcnow(
-        ) + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
+        ) + timedelta(minutes=30)}, app.config['SECRET_KEY'], "HS256")
         return jsonify({"success": True, "token": "Bearer " + str(token)})
     else:
         return jsonify({"password": "Incorrect password"}), 400
