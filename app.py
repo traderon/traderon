@@ -308,6 +308,10 @@ def get_reports():
     data = request.json
     trades = Trades.query.filter_by(user_id=data["userId"]).all()
     selectedIds = data["selected"]
+    brokers = data["broker"]
+    accountIds = data["accountId"]
+    symbols = data["symbol"]
+    status = data["status"]
     trades.sort(key=sort_by_date)
     total_return_x = []
     total_return_y = []
@@ -344,6 +348,14 @@ def get_reports():
     return_percent_total = 0
     for trade in trades:
         if len(selectedIds) > 0 and not trade.trade_id in selectedIds:
+            continue
+        if len(brokers) > 0 and not trade.broker in brokers:
+            continue
+        if len(accountIds) > 0 and not trade.account_id in accountIds:
+            continue
+        if len(symbols) > 0 and not trade.symbol in symbols:
+            continue
+        if len(status) > 0 and not trade.status in status:
             continue
         total_return_x.append(trade.open_date[0:10])
         total_return += float(trade.ret)
@@ -425,9 +437,10 @@ def createdb():
     return "db created"
 
 
-@app.route("/get-filter-item")
+@app.route("/get-filter-item", methods=["POST"])
 def getfilteritem():
-    trades = Trades.query.all()
+    data = request.json
+    trades = Trades.query.filter_by(user_id=data["userId"]).all()
     available_brokers = []
     available_symbols = []
     broker_account = []
