@@ -15,7 +15,7 @@ from brokers.metatrader import metatrader_import
 
 load_dotenv()
 
-app = Flask(__name__, static_folder='./build', static_url_path='/')
+app = Flask(__name__, static_folder='./build')
 SECRET_KEY = os.environ.get("SECRET_KEY")
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 # print(SECRET_KEY)
