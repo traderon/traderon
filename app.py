@@ -2,7 +2,7 @@ import os
 import jwt
 import uuid
 import stripe
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
@@ -98,9 +98,13 @@ def sort_by_date(dic):
     return dic.open_date
 
 
-@app.route("/")
-def index():
-    return app.send_static_file('index.html')
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def index(path):
+    if path != "" and os.path.exists(app.static_folder + '/' + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 
 @app.route("/api/user/register", methods=["POST"])
