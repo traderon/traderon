@@ -8,10 +8,9 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_socketio import SocketIO, emit
 
 from brokers.oanda import oanda_import
-from brokers.metatrader import metatrader_import
+from brokers.metatrader import metatrader_import, get_metatrader_orders, extract_data
 
 load_dotenv()
 
@@ -152,16 +151,16 @@ def get_current_user(current_user):
     user = Users.query.filter_by(email=current_user.email).first()
     return jsonify({"id": user.public_id, "email": user.email, "firstname": user.firstname, "lastname": user.lastname, "membership": user.membership, "paydate": user.paydate})
 
-
+# oanda import
 @app.route("/api/import_trades", methods=["POST"])
 def import_trades():
     tokens = request.json
     broker = tokens["broker"]
     if broker == "Oanda":
         imported_trades = oanda_import(tokens["key"], tokens["id"])
-    if broker == "Metatrader":
-        imported_trades = metatrader_import(
-            tokens["id"], tokens["password"], tokens["mtType"], tokens["passphrase"])
+    # if broker == "Metatrader":
+    #     imported_trades = metatrader_import(
+    #         tokens["id"], tokens["password"], tokens["mtType"], tokens["passphrase"])
     if 'trades' in imported_trades:
         userid = tokens["user"]
         for trade_data in imported_trades['trades']:
@@ -181,6 +180,37 @@ def import_trades():
     else:
         return jsonify({"error": "Error occured"}), 500
 
+
+# metatrader import
+@app.route("/api/import-metatrader/account", methods=["POST"])
+def import_metatrader_account():
+    tokens = request.json
+    result = metatrader_import(tokens["id"], tokens["password"], tokens["mtType"], tokens["passphrase"])
+    return jsonify(result)
+@app.route("/api/import-metatrader/orders", methods=["POST"])
+def import_metatrader_orders():
+    tokens = request.json
+    orders = get_metatrader_orders(tokens["id"])
+    return jsonify(orders)
+@app.route("/api/import-metatrader/extract", methods=["POST"])
+def extract_metatrader_data():
+    params = request.json
+    imported_trades = extract_data(params["order"], params["login"], params["contract"])
+    userid = params["user"]
+    for trade_data in imported_trades:
+        check_trade = Trades.query.filter_by(user_id=userid,
+                                                account_id=trade_data["account_id"], broker=trade_data["broker"], trade_id=trade_data["trade_id"]).first()
+        if check_trade:
+            continue
+        new_trade = Trades(user_id=userid, account_id=trade_data["account_id"], broker=trade_data["broker"], trade_id=trade_data["trade_id"], status=trade_data["status"], open_date=trade_data["open_date"],
+                            symbol=trade_data["symbol"], entry=trade_data["entry"], exit=trade_data["exit"], size=trade_data["size"], pips=trade_data["pips"], ret_pips=trade_data["ret_pips"], ret=trade_data["ret"], ret_percent=trade_data["ret_percent"], ret_net=trade_data["ret_net"], side=trade_data["side"], setups=trade_data["setups"], mistakes=trade_data["mistakes"])
+        db.session.add(new_trade)
+        for sub in trade_data["subs"]:
+            new_sub = SubTrades(user_id=userid, trade_id=trade_data["trade_id"], action=sub["action"], spread=sub["spread"],
+                                type=sub["type"], date=sub["date"], size=sub["size"], position=sub["position"], price=sub["price"])
+            db.session.add(new_sub)
+        db.session.commit()
+    return jsonify({"success": True, "count": len(imported_trades)})
 
 @app.route("/api/get_trades", methods=["POST"])
 def get_trade_data():

@@ -9,4 +9,3 @@ flask-mysqldb
 stripe
 oandapyV20
 six
-flask_socketio
