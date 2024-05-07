@@ -119,14 +119,15 @@ def metatrader_import(inputid, inputpassword, inputtype, inputpassphrase):
         except Exception as err:
             "type message wrong creating the account"
             print(err)
-            return {"error": "Error occured"}
-    get_orders = get_metatrader_orders(login)
-    if "value" in get_orders:
-        trade_data = extract_data(
-            get_orders["value"], login, get_orders["contracts"])
-        return {'trades': trade_data}
-    else:
-        return {"error": get_orders["error"]}
+            return {"success": False, "error": "Error occured"}
+    return {"success": True}
+    # get_orders = get_metatrader_orders(login)
+    # if "value" in get_orders:
+    #     trade_data = extract_data(
+    #         get_orders["value"], login, get_orders["contracts"])
+    #     return {'trades': trade_data}
+    # else:
+    #     return {"error": get_orders["error"]}
 
 
 def get_metatrader_orders(inputid):
@@ -325,13 +326,13 @@ def get_metatrader_orders(inputid):
                         orden['closed_price'] = str(closePrice/countSell)
                     orders.append(orden)
 
-        return {"value": orders, "contracts": symbol_contract}
+        return {"success": True, "value": orders, "contracts": symbol_contract}
 
     except Exception as err:
         print(err)
         "type message 'Error when obtaining the orders, verify that your account is connected to the broker'"
         tt.sleep(5)
-        return {"error": "Error when obtaining the orders, verify that your account is connected to the broker"}
+        return {"success": False, "error": "Error when obtaining the orders, verify that your account is connected to the broker"}
 
 
 def extract_data(orders, loginId, contract):
