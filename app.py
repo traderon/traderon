@@ -118,7 +118,7 @@ def register_user():
     )), firstname=data['firstname'], lastname=data['lastname'], password=hashed_password, email=data['email'], membership='trial')
     db.session.add(new_user)
     db.session.commit()
-    token = jwt.encode({'public_id': new_user.public_id, 'email': new_user.email, 'membership': 'trial', 'expired': 0, 'iat': datetime.utcnow(), 'exp': datetime.utcnow(
+    token = jwt.encode({'public_id': new_user.public_id, 'name': new_user.firstname + " " + new_user.lastname, 'email': new_user.email, 'membership': 'trial', 'expired': 0, 'iat': datetime.utcnow(), 'exp': datetime.utcnow(
     ) + timedelta(minutes=30)}, app.config['SECRET_KEY'], "HS256")
     return jsonify({"success": True, "token": "Bearer " + str(token)})
 
@@ -138,7 +138,7 @@ def login_user():
             expired = 0
         else:
             expired = 1
-        token = jwt.encode({'public_id': user.public_id, 'email': user.email, 'membership': user.membership, 'expired': expired, 'iat': datetime.utcnow(), 'exp': datetime.utcnow(
+        token = jwt.encode({'public_id': user.public_id,  'name': user.firstname + " " + user.lastname, 'email': user.email, 'membership': user.membership, 'expired': expired, 'iat': datetime.utcnow(), 'exp': datetime.utcnow(
         ) + timedelta(hours=12)}, app.config['SECRET_KEY'], "HS256")
         return jsonify({"success": True, "token": "Bearer " + str(token)})
     else:
@@ -277,7 +277,7 @@ def payment_success():
     user.membership = data["membership"]
     user.paydate = datetime.utcnow()
     db.session.commit()
-    token = jwt.encode({'public_id': user.public_id, 'email': user.email, 'membership': user.membership, 'expired': 0, 'iat': datetime.utcnow(), 'exp': datetime.utcnow(
+    token = jwt.encode({'public_id': user.public_id, 'name': user.firstname + " " + user.lastname, 'email': user.email, 'membership': user.membership, 'expired': 0, 'iat': datetime.utcnow(), 'exp': datetime.utcnow(
     ) + timedelta(minutes=30)}, app.config['SECRET_KEY'], "HS256")
     return jsonify({"success": True, "token": "Bearer " + token})
 
