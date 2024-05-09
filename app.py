@@ -486,7 +486,7 @@ def getfilteritem():
     if len(available_brokers) > 0:
         for broker in available_brokers:
             available_accounts = []
-            trades_broker = Trades.query.filter_by(broker=broker).all()
+            trades_broker = Trades.query.filter_by(user_id=data["userId"], broker=broker).all()
             for trade_broker in trades_broker:
                 if not trade_broker.account_id in available_accounts:
                     available_accounts.append(trade_broker.account_id)
