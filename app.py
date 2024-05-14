@@ -485,8 +485,9 @@ def getfilteritem():
     for trade in trades:
         if not trade.broker in available_brokers:
             available_brokers.append(trade.broker)
-        if not trade.symbol in available_symbols:
-            available_symbols.append(trade.symbol)
+        temp = {"broker": trade.broker, "account": trade.account_id, "symbol": trade.symbol}
+        if not temp in available_symbols:
+            available_symbols.append(temp)
     if len(available_brokers) > 0:
         for broker in available_brokers:
             available_accounts = []
