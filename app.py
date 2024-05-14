@@ -350,6 +350,8 @@ def get_reports():
     total_return_x = []
     total_return_y = []
     total_return = 0
+    total_return_net = 0
+    total_return_net_array = []
     total_dates = []
     daily_return = []
     temp_date = ""
@@ -394,6 +396,8 @@ def get_reports():
         total_return_x.append(trade.open_date[0:10])
         total_return += float(trade.ret)
         total_return_y.append(total_return)
+        total_return_net += float(trade.ret_net)
+        total_return_net_array.append(total_return_net)
         return_percent_total += float(trade.ret_percent)
         return_percent_series.append(return_percent_total)
         if trade.open_date[0:10] == temp_date:
@@ -462,7 +466,7 @@ def get_reports():
             biggestPercentProfit = float(trade.ret_percent)
         if float(trade.ret_percent) < biggestPercentLose:
             biggestPercentLose = float(trade.ret_percent)
-    return jsonify({"totalReturnY": total_return_y, "totalReturnX": total_return_x, "totalReturn": total_return, "totalDates": total_dates, "dailyReturn": daily_return, "returnWin": return_winner, "returnWinTotal": return_winner_total, "returnLose": return_loser, "returnLoseTotal": return_loser_total, "returnLong": return_long, "returnLongTotal": return_long_total, "returnShort": return_short, "returnShortTotal": return_short_total, "biggestProfit": biggestProfit, "biggestLose": biggestLose, "totalClosedTrades": closed_trades_total, "closedTrades": closed_trades, "totalOpenTrades": open_trades_total, "openTrades": open_trades, "totalTrades": len(total_return_x), "dailyTrades": daily_trades, "totalWinner": win_count, "totalLoser": loss_count, "dailyWinners": win_total, "dailyLosers": loss_total, "beCount": be_count, "dailyBe": be_total, "returnPercentSeries": return_percent_series, "returnPercentTotal": return_percent_total, "biggestPercentProfit": biggestPercentProfit, "biggestPercentLose": biggestPercentLose, "percentProfits": percentProfits, "percentLoses": percentLoses})
+    return jsonify({"totalReturnY": total_return_y, "totalReturnX": total_return_x, "totalReturn": total_return, "totalReturnNet": total_return_net, "totalReturnNetArray": total_return_net_array, "totalDates": total_dates, "dailyReturn": daily_return, "returnWin": return_winner, "returnWinTotal": return_winner_total, "returnLose": return_loser, "returnLoseTotal": return_loser_total, "returnLong": return_long, "returnLongTotal": return_long_total, "returnShort": return_short, "returnShortTotal": return_short_total, "biggestProfit": biggestProfit, "biggestLose": biggestLose, "totalClosedTrades": closed_trades_total, "closedTrades": closed_trades, "totalOpenTrades": open_trades_total, "openTrades": open_trades, "totalTrades": len(total_return_x), "dailyTrades": daily_trades, "totalWinner": win_count, "totalLoser": loss_count, "dailyWinners": win_total, "dailyLosers": loss_total, "beCount": be_count, "dailyBe": be_total, "returnPercentSeries": return_percent_series, "returnPercentTotal": return_percent_total, "biggestPercentProfit": biggestPercentProfit, "biggestPercentLose": biggestPercentLose, "percentProfits": percentProfits, "percentLoses": percentLoses})
 
 
 @app.route("/create")
