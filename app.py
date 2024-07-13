@@ -8,7 +8,9 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
-
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
 from brokers.oanda import oanda_import
 from brokers.metatrader import metatrader_import, get_metatrader_orders, extract_data
 
@@ -336,9 +338,8 @@ def get_chartdata():
     volume_day = volume_total / len(trades)
     return jsonify({"accumulative_return": accumulative_return, "accumulative_return_total": accumulative_return_total, "xvalue_all": xvalue_all, "profit_factor": profit_factor, "avg_profit_factor": total_profit_factor / len(profit_factor), "avg_return": avg_return, "avg_return_total": avg_return_total / len(trades), "win_ratio": {"total": len(trades), "winning": win_count}, "pnl_total": pnl_total, "pnl_change": pnl_change, "pnl_day": pnl_day, "volume_day": volume_day, "total_pnl": total_pnl, "daily_pnl": daily_pnl, "daily_volume": daily_volume, "total_win_rate": total_win_rate, "daily_win_rate": daily_win_rate, "total_win_or_loss_score": total_win_or_loss_score})
 
-
-@app.route("/api/get-reports", methods=["POST"])
-def get_reports():
+@app.route("/api/get-reports-insights", methods=["POST"])
+def get_reports_insights():
     data = request.json
     trades = Trades.query.filter_by(user_id=data["userId"]).all()
     selectedIds = data["selected"]
@@ -380,9 +381,13 @@ def get_reports():
     loss_total = []
     be_count = 0
     be_total = []
-    return_percent_series = []
+    return_percent_series = []   
     return_percent_total = 0
+    ordenes=[]
     for trade in trades:
+        ordenesDict={'open_date':trade.open_date,'status':trade.status, 'ret':trade.ret}
+        ordenes.append(ordenesDict)
+        print(trade.status)
         if len(selectedIds) > 0 and not trade.trade_id in selectedIds:
             continue
         if len(brokers) > 0 and not trade.broker in brokers:
@@ -466,8 +471,311 @@ def get_reports():
             biggestPercentProfit = float(trade.ret_percent)
         if float(trade.ret_percent) < biggestPercentLose:
             biggestPercentLose = float(trade.ret_percent)
+    dia,size,dia_profit,size_profit=data_ai(ordenes)
+    return jsonify({"totalReturnY": total_return_y, "totalReturnX": total_return_x, "totalReturn": total_return, "totalReturnNet": total_return_net, "totalReturnNetArray": total_return_net_array, "totalDates": total_dates, "dailyReturn": daily_return, "returnWin": return_winner, "returnWinTotal": return_winner_total, "returnLose": return_loser, "returnLoseTotal": return_loser_total, "returnLong": return_long, "returnLongTotal": return_long_total, "returnShort": return_short, "returnShortTotal": return_short_total, "biggestProfit": biggestProfit, "biggestLose": biggestLose, "totalClosedTrades": closed_trades_total, "closedTrades": closed_trades, "totalOpenTrades": open_trades_total, "openTrades": open_trades, "totalTrades": len(total_return_x), "dailyTrades": daily_trades, "totalWinner": win_count, "totalLoser": loss_count, "dailyWinners": win_total, "dailyLosers": loss_total, "beCount": be_count, "dailyBe": be_total, "returnPercentSeries": return_percent_series, "returnPercentTotal": return_percent_total, "biggestPercentProfit": biggestPercentProfit, "biggestPercentLose": biggestPercentLose, "percentProfits": percentProfits, "percentLoses": percentLoses, "dia":dia, "size":size, "dia_profit":dia_profit,"size_profit":size_profit})
+
+
+@app.route("/api/get-reports", methods=["POST"])
+def get_reports():
+    data = request.json
+    trades = Trades.query.filter_by(user_id=data["userId"]).all()
+    selectedIds = data["selected"]
+    brokers = data["broker"]
+    accountIds = data["accountId"]
+    symbols = data["symbol"]
+    status = data["status"]
+    trades.sort(key=sort_by_date)
+    total_return_x = []
+    total_return_y = []
+    total_return = 0
+    total_return_net = 0
+    total_return_net_array = []
+    total_dates = []
+    daily_return = []
+    temp_date = ""
+    return_winner = []
+    return_winner_total = 0
+    return_loser = []
+    return_loser_total = 0
+    return_long = []
+    return_short = []
+    return_long_total = 0
+    return_short_total = 0
+    biggestProfit = 0
+    biggestLose = 0
+    biggestPercentProfit = 0
+    percentProfits = []
+    percentLoses = []
+    biggestPercentLose = 0
+    closed_trades = []
+    closed_trades_total = 0
+    open_trades = []
+    open_trades_total = 0
+    daily_trades = []
+    win_count = 0
+    loss_count = 0
+    win_total = []
+    loss_total = []
+    be_count = 0
+    be_total = []
+    return_percent_series = []   
+    return_percent_total = 0
+    ordenes=[]
+    for trade in trades:
+        ordenesDict={'open_date':trade.open_date,'status':trade.status}
+        ordenes.append(ordenesDict)
+        print(trade.status)
+        if len(selectedIds) > 0 and not trade.trade_id in selectedIds:
+            continue
+        if len(brokers) > 0 and not trade.broker in brokers:
+            continue
+        if len(accountIds) > 0 and not trade.account_id in accountIds:
+            continue
+        if len(symbols) > 0 and not trade.symbol in symbols:
+            continue
+        if len(status) > 0 and not trade.status in status:
+            continue
+        total_return_x.append(trade.open_date[0:10])
+        total_return += float(trade.ret)
+        total_return_y.append(total_return)
+        total_return_net += float(trade.ret_net)
+        total_return_net_array.append(total_return_net)
+        return_percent_total += float(trade.ret_percent)
+        return_percent_series.append(return_percent_total)
+        if trade.open_date[0:10] == temp_date:
+            daily_return[-1] += float(trade.ret)
+            daily_trades[-1] += 1
+            if float(trade.ret) == 0:
+                be_total[-1] += 1
+                be_count += 1
+            if trade.status == "WIN" or trade.status == "LOSS":
+                closed_trades[-1] += 1
+                closed_trades_total += 1
+                if trade.status == "WIN":
+                    win_total[-1] += 1
+                    win_count += 1
+                else:
+                    loss_total[-1] += 1
+                    loss_count += 1
+            else:
+                open_trades[-1] += 1
+                open_trades_total += 1
+        else:
+            total_dates.append(trade.open_date[0:10])
+            daily_return.append(float(trade.ret))
+            daily_trades.append(1)
+            if trade.status == "WIN" or trade.status == "LOSS":
+                closed_trades.append(1)
+                closed_trades_total += 1
+                open_trades.append(0)
+                if trade.status == "WIN":
+                    win_count += 1
+                    win_total.append(1)
+                    loss_total.append(0)
+                else:
+                    loss_count += 1
+                    win_total.append(0)
+                    loss_total.append(1)
+            else:
+                closed_trades.append(0)
+                open_trades.append(1)
+                open_trades_total += 1
+            if float(trade.ret) == 0:
+                be_total.append(1)
+                be_count += 1
+            else:
+                be_total.append(0)
+            temp_date = trade.open_date[0:10]
+        if trade.status == "WIN":
+            return_winner.append(float(trade.ret))
+            return_winner_total += float(trade.ret)
+            percentProfits.append(float(trade.ret_percent))
+        else:
+            return_loser.append(float(trade.ret))
+            return_loser_total += float(trade.ret)
+            percentLoses.append(float(trade.ret_percent))
+        if trade.side == "LONG":
+            return_long.append(float(trade.ret))
+            return_long_total += float(trade.ret)
+        else:
+            return_short.append(float(trade.ret))
+            return_short_total += float(trade.ret)
+        if float(trade.ret) > biggestProfit:
+            biggestProfit = float(trade.ret)
+        if float(trade.ret) < biggestLose:
+            biggestLose = float(trade.ret)
+        if float(trade.ret_percent) > biggestPercentProfit:
+            biggestPercentProfit = float(trade.ret_percent)
+        if float(trade.ret_percent) < biggestPercentLose:
+            biggestPercentLose = float(trade.ret_percent)
+    #dia,size=data_ai(ordenes)
     return jsonify({"totalReturnY": total_return_y, "totalReturnX": total_return_x, "totalReturn": total_return, "totalReturnNet": total_return_net, "totalReturnNetArray": total_return_net_array, "totalDates": total_dates, "dailyReturn": daily_return, "returnWin": return_winner, "returnWinTotal": return_winner_total, "returnLose": return_loser, "returnLoseTotal": return_loser_total, "returnLong": return_long, "returnLongTotal": return_long_total, "returnShort": return_short, "returnShortTotal": return_short_total, "biggestProfit": biggestProfit, "biggestLose": biggestLose, "totalClosedTrades": closed_trades_total, "closedTrades": closed_trades, "totalOpenTrades": open_trades_total, "openTrades": open_trades, "totalTrades": len(total_return_x), "dailyTrades": daily_trades, "totalWinner": win_count, "totalLoser": loss_count, "dailyWinners": win_total, "dailyLosers": loss_total, "beCount": be_count, "dailyBe": be_total, "returnPercentSeries": return_percent_series, "returnPercentTotal": return_percent_total, "biggestPercentProfit": biggestPercentProfit, "biggestPercentLose": biggestPercentLose, "percentProfits": percentProfits, "percentLoses": percentLoses})
 
+def pie_chart(df,col, title):
+    """
+    Parametros:
+    ----------
+    df : pandas dataframe
+    col (string): nombre de la columna del dataframe 
+    title (string): título del gráfico 
+    
+    Resultado:
+    -------
+    Despliega un gráfico de torta con las etiquetas y la proporción 
+    (%) de los datos
+    """
+    counts = df[col].value_counts()
+    counts.plot(kind='pie',autopct='%.0f%%',fontsize=20, figsize=(6, 6))
+    plt.title(title)
+    plt.show() 
+    
+
+def data_ai(orders):
+    print(orders)
+    df=pd.DataFrame(orders)
+    
+    #df=df.drop(0)
+    #print(df[5])
+    #print(df[6])
+    df['open_date'] = df['open_date'].astype(str)
+    #df[3] = pd.datetime.strptime(df[3], '%b %d, %Y')
+    df['open_date']=pd.to_datetime(df['open_date']).dt.date
+    df['open_date'] = pd.to_datetime(df['open_date'], errors='coerce')
+    #print(df.head())
+    #print(df.info())
+    dias=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+    df["dia"] = df['open_date'].dt.dayofweek
+    df["dia"] = df["dia"].astype(str)
+    df["dia"] = df["dia"].str.replace('0', 'Monday')
+    df["dia"] = df["dia"].str.replace('1', 'Tuesday')
+    df["dia"] = df["dia"].str.replace('2', 'Wednesday')
+    df["dia"] = df["dia"].str.replace('3', 'Thursday')
+    df["dia"] = df["dia"].str.replace('4', 'Friday')
+    df["dia"] = df["dia"].str.replace('5', 'Saturday')
+    df["dia"] = df["dia"].str.replace('6', 'Sunday')
+    df_win = df[df['status'] == 'WIN']
+    df_loss = df[df['status'] == 'LOSS']
+    print(df_win)
+    #recurrencia de los dias en los trades ganadores
+    df2 = df_win.groupby(['dia'], as_index=False).size()
+    dia=np.array(df2['dia'])
+    size=np.array(df2['size'])
+    #pie_chart(df_win,'dia','Proporción de las muestras benignas/malignas')
+    
+    
+    #pie_chart(df_win,'dia','Proporción de las muestras benignas/malignas')
+    print(df2)
+    #decir el dia donde mas es recurrente la ganancia
+    dia_mas_ganador=str(df2.iloc[df2['size'].idxmax()][0])
+    #hacer diagrama de torta con la recurrencia de los dias ganadores
+    #print(df['ret'])
+    df_win['ret']=df_win['ret'].astype(float)
+    #print(df_win['ret'])
+    dia_mas_profit = df_win.groupby(['dia'], as_index=False).agg({'ret': 'sum'})
+    
+    print(dia_mas_profit)
+    dia_profit=np.array(dia_mas_profit['dia'])
+    size_profit=np.array(dia_mas_profit['ret'])
+    
+    return dia.tolist(),size.tolist(),dia_profit.tolist(),size_profit.tolist()
+    """
+    dia_profit=dia_mas_profit['dia']
+    dia_ret=dia_mas_profit['ret']
+    
+    
+   
+    dia_mas_profit.plot(kind='bar', legend=None)
+    plt.title('Ventas a lo largo del tiempo')
+    plt.xlabel('dia')
+    plt.ylabel('retorno')
+    plt.tight_layout();
+    plt.show()
+    valor=float(dia_mas_profit.max())
+    dia_mas_profit['ret']=dia_mas_profit['ret'].astype(float)
+    dia_mas_profit = dia_mas_profit[dia_mas_profit['ret'] == valor]
+    print(dia_mas_profit)
+    #Recurrencia de los symbolos winners
+    symbolos_winners = df_win.groupby(['symbol'], as_index=False).size()
+    pie_chart(df_win,'symbol','recurrencia de los activos winners')
+    print(df2)
+    symbolo_recurrente_winners=str(symbolos_winners.iloc[symbolos_winners['size'].idxmax()][0])
+    
+    symbolo_mas_profit = df_win.groupby('symbol').agg({'ret': 'sum'})
+    
+    symbolo_mas_profit.plot(kind='bar', legend=None)
+    plt.title('retorno total por activo')
+    plt.xlabel('symbol')
+    plt.ylabel('retorno')
+    plt.tight_layout();
+    plt.show()
+    
+    valor=float(symbolo_mas_profit.max())
+    symbolo_mas_profit['ret']=symbolo_mas_profit['ret'].astype(float)
+    dia_mas_profit = symbolo_mas_profit[symbolo_mas_profit['ret'] == valor]
+    print(dia_mas_profit)
+    
+    symbolos_dias_winners = df_win.groupby(['symbol','dia'], as_index=False).size()
+    symbolos_dias_winners_mas_profit = df_win.groupby(by=['symbol', 'dia']).agg({'ret': 'sum'})
+    
+    symbolos_dias_winners_mas_profit.plot(kind='bar', legend=None)
+    plt.title('retorno total por dia y simbolo')
+    plt.xlabel('symbol')
+    plt.ylabel('retorno')
+    plt.tight_layout();
+    plt.show()
+    
+    print(symbolos_dias_winners)
+    print(symbolos_dias_winners_mas_profit)
+    valor=float(symbolos_dias_winners_mas_profit.max())
+    symbolo_dia_winners_mas_recurrente = symbolos_dias_winners_mas_profit[symbolos_dias_winners_mas_profit['ret'] == valor]
+    print(symbolo_dia_winners_mas_recurrente)
+    #pie_chart(df_win,'symbol','recurrencia de los activos winners')
+    
+    
+    df['open_date'] = df['open_date'].astype(str)
+    df['hour']=pd.to_datetime(df['open_date']).dt.hour
+    #df['open_date'] = pd.to_datetime(df['open_date'], errors='coerce')
+    print(df['hour'])
+    df2 = df.groupby(['hour'], as_index=False).size()
+    df_hour=df2.sort_values(by=["size"],axis=0,ascending=False)
+    print(df_hour)
+    print(df_hour.iloc[0]['hour'])
+    print(df_hour.iloc[1]['hour'])
+    print("tienes mas ganancias entre estos horarios para la fecha de apertura "+str(df_hour.iloc[1]['hour'])+" y "+str(df_hour.iloc[0]['hour'])+" horas")
+    pie_chart(df,'hour','Proporción de las muestras benignas/malignas')
+    print(df2)
+    print("")
+    
+    
+    df_orders_subs=df['subs']
+    lista_subs=df_orders_subs.values
+    lista_fechas=[]
+    for i in lista_subs:
+        if i[0]['action']=='Sell':
+            my_diccionario= {'hour_open': i[1]['date'], 'hour_close': i[0]['date']}
+            lista_fechas.append(my_diccionario)
+        else:
+            my_diccionario= {'hour_open': i[0]['date'], 'hour_close': i[1]['date']}
+            lista_fechas.append(my_diccionario)
+    
+    df_fechas=pd.DataFrame(lista_fechas)
+    print(df_fechas.head(5))
+    
+    print("")
+    
+    df_fechas['hour_open']=pd.to_datetime(df_fechas['hour_open']).dt.hour
+    df_fechas['hour_close']=pd.to_datetime(df_fechas['hour_close']).dt.hour
+    
+    
+    print(df_fechas.head(5))
+    print("")
+    
+    
+    df2 = df_fechas.groupby(by=['hour_open','hour_close'], as_index=False).size()
+    print(df2)
+    df_hour=df2.sort_values(by=["size"],axis=0,ascending=False)
+    print("tienes mas ganancias entre las "+str(df_hour.iloc[0]['hour_open'])+" horas y "+str(df_hour.iloc[0]['hour_close'])+" horas")
+    """
 
 @app.route("/create")
 def createdb():
