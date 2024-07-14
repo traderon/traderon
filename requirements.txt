@@ -10,3 +10,5 @@ stripe
 oandapyV20
 six
 pandas
+matplotlib
+numpy
