@@ -9,3 +9,4 @@ flask-mysqldb
 stripe
 oandapyV20
 six
+pandas
