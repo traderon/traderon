@@ -485,7 +485,7 @@ def get_reports():
     symbols = data["symbol"]
     status = data["status"]
     trades.sort(key=sort_by_date)
-    total_return_x = [1,2,3,4,5]
+    total_return_x = []
     total_return_y = []
     total_return = 0
     total_return_net = 0
